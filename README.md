@@ -1,6 +1,9 @@
 # cscope_maps.nvim
 For old school code navigation :)
-It opens results in quikfix window so, it's easier to go through results.
+
+cscope keymaps are loaded only if project contains `cscope.out`. This allows us to use same keymaps for other tasks.
+
+It opens results in quickfix window so, it's easier to go through results.
 
 # Installaion
 Use your favourite package manager.

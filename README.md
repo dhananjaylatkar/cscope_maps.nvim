@@ -1,18 +1,34 @@
 # cscope_maps.nvim
-For old school code navigation :)
+For old school code navigation :). 
 
-cscope keymaps are loaded only if project contains `cscope.out`. This allows us to use same keymaps for other tasks.
+Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
-It opens results in quickfix window so, it's easier to go through results.
+# Features
+* Opens results in quickfix window.
+* Loads only if folder contains `cscope.out` file.
+* Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints baked in. 
 
 # Installaion
-Use your favourite package manager.
+Install the plugin with your preferred package manager.
 
-## Packer
+## [packer](https://github.com/wbthomason/packer.nvim)
 ``` lua
+-- Lua
 use 'dhananjaylatkar/cscope_maps.nvim' -- cscope keymaps
+use 'folke/which-key.nvim' -- optional
 
-require('cscope_maps').setup()         -- initialize cscope maps
+require('cscope_maps') -- initialize cscope maps
+```
+
+## [vim-plug](https://github.com/junegunn/vim-plug)
+```vim
+" Vim Script
+Plug 'dhananjaylatkar/cscope_maps.nvim' " cscope keymaps
+Plug 'folke/which-key.nvim' " optional
+
+lua << EOF
+  require("cscope_maps")
+EOF
 ```
 
 # Keymaps

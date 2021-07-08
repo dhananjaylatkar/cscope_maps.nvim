@@ -46,15 +46,18 @@ EOF
 |`<leader>ca`| find places where this symbol is assigned a value |
 
 # Sreenshots
-- Loads cscope DB if it's available.
+### Loads `cscope` DB if it's available.
+
 ![Load cscope](./pics/1-load-cscope.png "Load cscope")
 
-- Asks for input when invoked (Default takes word/file under cursor).
+### Asks for input when invoked. (Default takes word/file under cursor)
+
 ![Input](./pics/2-input-prompt.png "Input")
 
-- Opens results in Quickfix window and selects first match.
+### Opens results in Quickfix window and selects first match.
+
 ![Quickfix](./pics/3-qf-window.png "Quickfix window")
 
-- [which-key.nvim](https://github.com/folke/which-key.nvim) which-key hints are baked in.
-![which-key Hints](./pics/4-wk-hints.png "which-key pane")
+### [which-key](https://github.com/folke/which-key.nvim) hints are baked in.
 
+![which-key Hints](./pics/4-wk-hints.png "which-key pane")

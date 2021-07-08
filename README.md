@@ -1,5 +1,5 @@
 # cscope_maps.nvim
-For old school code navigation :). 
+For old school code navigation :).
 
 Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
@@ -17,7 +17,7 @@ Install the plugin with your preferred package manager.
 use 'dhananjaylatkar/cscope_maps.nvim' -- cscope keymaps
 use 'folke/which-key.nvim' -- optional
 
-require('cscope_maps') -- initialize cscope maps
+require('cscope_maps') -- load cscope maps
 ```
 
 ## [vim-plug](https://github.com/junegunn/vim-plug)
@@ -44,4 +44,17 @@ EOF
 |`<leader>ci`| find files that include the filename under cursor|
 |`<leader>cd`| find functions that function under cursor calls |
 |`<leader>ca`| find places where this symbol is assigned a value |
+
+# Sreenshots
+- Loads cscope DB if it's available.
+![Load cscope](./pics/1-load-cscope.png "Load cscope")
+
+- Asks for input when invoked (Default takes word/file under cursor).
+![Input](./pics/2-input-prompt.png "Input")
+
+- Opens results in Quickfix window and selects first match.
+![Quickfix](./pics/3-qf-window.png "Quickfix window")
+
+- [which-key.nvim](https://github.com/folke/which-key.nvim) which-key hints are baked in.
+![which-key Hints](./pics/4-wk-hints.png "which-key pane")
 

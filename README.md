@@ -20,6 +20,17 @@ use 'folke/which-key.nvim' -- optional
 require('cscope_maps') -- load cscope maps
 ```
 
+### If you are lazy-loading which-key.nvim then, load cscope_maps.nvim after which-key.nvim
+```lua
+use({
+    "dhananjaylatkar/cscope_maps.nvim",
+    after = "which-key.nvim",
+    config = function()
+      require("cscope_maps")
+    end,
+})
+```
+
 ## [vim-plug](https://github.com/junegunn/vim-plug)
 ```vim
 " Vim Script

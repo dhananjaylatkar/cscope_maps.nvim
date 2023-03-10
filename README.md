@@ -1,7 +1,15 @@
 # cscope_maps.nvim
+**Now with `cscope` support for Neovim 0.9+**
+
 For old school code navigation :).
 
 Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
+
+# [NEW] Cscope support
+- Tries to mimic vim's builtin cscope functionality.
+- Provides user command, `:Cscope` which acts same as good old `:cscope`.
+- No need to add cscope database (`:cscope add <file>`), it is automaticaly picked from current directory.
+- Only want to use Cscope? No worries, disable keymaps using option.
 
 # Features
 * Opens results in quickfix window.
@@ -17,17 +25,24 @@ Install the plugin with your preferred package manager.
 use 'dhananjaylatkar/cscope_maps.nvim' -- cscope keymaps
 use 'folke/which-key.nvim' -- optional
 
-require('cscope_maps') -- load cscope maps
+-- load cscope maps
+-- pass empty table to setup({}) for default options
+require('cscope_maps').setup({
+  disable_maps = false, -- true disables my keymaps, only :Cscope will be loaded
+  cscope = {
+    db_file = "./cscope.out", -- location of cscope db file
+  },
+})
 ```
 
 ### If you are lazy-loading which-key.nvim then, load cscope_maps.nvim after which-key.nvim
 ```lua
 use({
-    "dhananjaylatkar/cscope_maps.nvim",
-    after = "which-key.nvim",
-    config = function()
-      require("cscope_maps")
-    end,
+  "dhananjaylatkar/cscope_maps.nvim",
+  after = "which-key.nvim",
+  config = function()
+    require("cscope_maps").setup({})
+  end,
 })
 ```
 

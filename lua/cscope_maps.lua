@@ -149,7 +149,7 @@ M.setup = function(opts)
 		local prompt = sym_map[operation] .. " (default: '" .. default_symbol .. "'): "
 		local cmd = cscope .. " find " .. operation
 		vim.ui.input({ prompt = prompt }, function(new_symbol)
-			if "" ~= new_symbol then
+			if new_symbol and new_symbol ~= "" then
 				cmd = cmd .. " " .. new_symbol
 			else
 				cmd = cmd .. " " .. default_symbol

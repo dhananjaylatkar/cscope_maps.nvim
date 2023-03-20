@@ -107,7 +107,7 @@ end
 local cscope_find = function(op, symbol)
 	op = tostring(op)
 	if #op ~= 1 then
-		print("cscope: operation '" .. op .. "' is not invalid")
+		print("cscope: operation '" .. op .. "' is invalid")
 		return
 	end
 	if string.find("012346789", op) then
@@ -115,7 +115,7 @@ local cscope_find = function(op, symbol)
 	elseif string.find("sgdctefia", op) then
 		cscope_find_helper(M.op_s_n[op], op, symbol)
 	else
-		print("cscope: operation '" .. op .. "' is not invalid")
+		print("cscope: operation '" .. op .. "' is invalid")
 	end
 end
 
@@ -126,7 +126,7 @@ M.cscope = function(cmd, op, symbol)
 	elseif cmd == "help" then
 		cscope_help()
 	else
-		print("cscope: command '" .. cmd .. "' is not invalid")
+		print("cscope: command '" .. cmd .. "' is invalid")
 	end
 end
 

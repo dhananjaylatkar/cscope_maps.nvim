@@ -139,7 +139,7 @@ M.setup = function(opts)
 		require("cscope.cscope").setup({ M.opts.cscope })
 	end
 
-	if M.opts.disable_maps or io.open(M.opts.cscope.db_file, "r") == nil then
+	if M.opts.disable_maps then
 		-- No need to proceed
 		return
 	end

@@ -139,11 +139,6 @@ M.setup = function(opts)
 		require("cscope.cscope").setup({ M.opts.cscope })
 	end
 
-	if M.opts.disable_maps then
-		-- No need to proceed
-		return
-	end
-
 	-- function to print xcscpoe.el like prompts
 	M.cscope_prompt = function(operation, default_symbol)
 		local prompt = sym_map[operation] .. " (default: '" .. default_symbol .. "'): "
@@ -160,6 +155,12 @@ M.setup = function(opts)
 			end
 		end)
 	end
+
+	if M.opts.disable_maps then
+		-- No need to proceed
+		return
+	end
+
 	-- Mappings
 	local ok, wk = pcall(require, "which-key")
 	if not ok then

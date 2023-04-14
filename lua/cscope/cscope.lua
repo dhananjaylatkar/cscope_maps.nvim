@@ -81,11 +81,13 @@ end
 local cscope_find_helper = function(op_n, op_s, symbol)
 	-- Executes cscope command and shows result in QuickFix List
 
-	if io.open(M.opts.db_file, "r") == nil then
-		print("cscope: database not found in current path.")
+	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
+
+	if io.open(db_file, "r") == nil then
+		print("cscope: database file not found. [" .. db_file .. "]")
 		return
 	end
-	local cmd = "cscope -dL -f " .. M.opts.db_file .. " -" .. op_n .. " " .. symbol
+	local cmd = "cscope -dL -f " .. db_file .. " -" .. op_n .. " " .. symbol
 
 	local file = assert(io.popen(cmd, "r"))
 	file:flush()
@@ -156,6 +158,10 @@ end
 
 M.setup = function(opts)
 	M.opts = vim.tbl_extend("force", M.opts, opts)
+	-- This variable can be used by other plugins to change db_file
+	-- e.g. vim-gutentags can use it for when
+	--	vim.g.gutentags_cache_dir is enabled.
+	vim.g.cscope_maps_db_file = ""
 	cscope_user_command()
 end
 

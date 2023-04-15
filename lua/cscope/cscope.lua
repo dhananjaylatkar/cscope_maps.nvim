@@ -103,7 +103,7 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 
 	vim.fn.setqflist(parsed_output, "r")
 	vim.fn.setqflist({}, "a", { title = "cscope find " .. op_s .. " " .. symbol })
-	vim.api.nvim_command("copen")
+	vim.api.nvim_command("botright copen")
 end
 
 local cscope_find = function(op, symbol)

@@ -125,7 +125,7 @@ M.cscope = function(cmd, op, symbol)
 	-- Parse top level output and call appropriate functions
 	if cmd == "find" then
 		cscope_find(op, symbol)
-	elseif cmd == "help" then
+	elseif cmd == "help" or cmd == nil then
 		cscope_help()
 	else
 		print("cscope: command '" .. cmd .. "' is invalid")

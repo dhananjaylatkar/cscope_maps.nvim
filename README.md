@@ -8,13 +8,13 @@ Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.
 # 🌟 Cscope support
 - Tries to mimic vim's builtin cscope functionality.
 - Provides user command, `:Cscope` which acts same as good old `:cscope`.
-- No need to add cscope database (`:cscope add <file>`), it is automaticaly picked from current directory.
-- Only want to use Cscope? No worries, disable keymaps using option.
+- No need to add cscope database (`:cscope add <file>`), it is automaticaly picked from current directory or `db_file` option.
+- Only want to use Cscope? No worries, keymaps can be disabled using `disable_maps` option.
 
 # Features
 * Opens results in quickfix window.
-* Loads only if folder contains `cscope.out` file.
-* Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints baked in. 
+* Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints baked in.
+* See [this](https://github.com/dhananjaylatkar/cscope_maps.nvim/edit/main/README.md#vim-gutentags) for `vim-gutentags`.
 
 # Installaion
 Install the plugin with your preferred package manager.
@@ -57,6 +57,27 @@ lua << EOF
 EOF
 ```
 
+# vim-gutentags
+
+Cscope provided by this plugin is not exactly same as built-in vim cscope, vim-gutentags fails to load.
+
+I have created a [patch](https://github.com/ludovicchabant/vim-gutentags/pull/346) to support this plugin and my fork can be used until it's merged in upstream.
+
+### Config for vim-gutentags
+```lua
+use({
+  "dhananjaylatkar/vim-gutentags",
+  after = "cscope_maps.nvim",
+  config = function()
+    vim.g.gutentags_modules = {"cscope_maps"} -- This is required. Other config is optional
+    vim.g.gutentags_cscope_build_inverted_index_maps = 1
+    vim.g.gutentags_cache_dir = vim.fn.expand("~/code/.gutentags")
+    vim.g.gutentags_file_list_command = "fd -e c -e h"
+    -- vim.g.gutentags_trace = 1
+  end,
+})
+```
+
 # Keymaps
 
 | Keymaps | Description |
@@ -72,18 +93,16 @@ EOF
 |`<leader>ca`| find places where this symbol is assigned a value |
 
 # Sreenshots
-### Loads `cscope` DB if it's available.
-
-![Load cscope](./pics/1-load-cscope.png "Load cscope")
 
 ### Asks for input when invoked. (Default takes word/file under cursor)
 
 ![Input](./pics/2-input-prompt.png "Input")
 
-### Opens results in Quickfix window and selects first match.
+### Opens results in Quickfix window.
 
 ![Quickfix](./pics/3-qf-window.png "Quickfix window")
 
 ### [which-key](https://github.com/folke/which-key.nvim) hints are baked in.
 
 ![which-key Hints](./pics/4-wk-hints.png "which-key pane")
+

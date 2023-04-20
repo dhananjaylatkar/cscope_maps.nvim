@@ -1,5 +1,5 @@
 # cscope_maps.nvim
-For old school code navigation :).
+For old school code navigation :)
 
 Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
@@ -80,6 +80,8 @@ use({
 
 # Keymaps
 
+### Default Keymaps
+
 | Keymaps | Description |
 |--- | --- |
 |`<leader>cs`| find all references to the token under cursor |
@@ -92,9 +94,43 @@ use({
 |`<leader>cd`| find functions that function under cursor calls |
 |`<leader>ca`| find places where this symbol is assigned a value |
 
+### Custom Keymaps
+
+Disable default keymaps by setting `disable_maps = true`.
+
+There are 2 ways to add keymaps for `Cscope`.
+
+#### Using `cscope_prompt()` function
+
+`cscope_prompt(operation, default_symbol)` is exposed to user. This function provides prompt which asks for input (see screenshots below) before running `:Cscope` command.
+
+e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol under cursor
+```lua
+vim.api.nvim_set_keymap(
+  "n",
+  "<C-c><C-g>",
+  [[<cmd>lua require('cscope_maps').cscope_prompt('g', vim.fn.expand("<cword>"))<cr>]],
+  { noremap = true, silent = true }
+) 
+```
+
+#### Using `:Cscope` command
+
+Use `vim.api.nvim_set_keymap()` to set keymap for cscope.
+
+e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol under cursor
+```lua
+vim.api.nvim_set_keymap(
+  "n",
+  "<C-c><C-g>",
+  '<cmd>Cscope find g vim.fn.expand("<cword>"))<cr>',
+  { noremap = true, silent = true }
+) 
+```
+
 # Sreenshots
 
-### Asks for input when invoked. (Default takes word/file under cursor)
+### Asks for input when invoked. (Default input is word/file under cursor)
 
 ![Input](./pics/2-input-prompt.png "Input")
 

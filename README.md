@@ -24,6 +24,7 @@ Install the plugin with your preferred package manager.
 -- Lua
 use 'dhananjaylatkar/cscope_maps.nvim' -- cscope keymaps
 use 'folke/which-key.nvim' -- optional
+use 'nvim-telescope/telescope.nvim' -- required for use_telescope option
 
 -- load cscope maps
 -- pass empty table to setup({}) for default options
@@ -31,6 +32,7 @@ require('cscope_maps').setup({
   disable_maps = false, -- true disables my keymaps, only :Cscope will be loaded
   cscope = {
     db_file = "./cscope.out", -- location of cscope db file
+    use_telescope = false, -- true will show results in telescope picker
   },
 })
 ```
@@ -51,6 +53,7 @@ use({
 " Vim Script
 Plug 'dhananjaylatkar/cscope_maps.nvim' " cscope keymaps
 Plug 'folke/which-key.nvim' " optional
+Plug 'nvim-telescope/telescope.nvim' " required for use_telescope option
 
 lua << EOF
   require("cscope_maps").setup({})
@@ -142,3 +145,5 @@ vim.api.nvim_set_keymap(
 
 ![which-key Hints](./pics/4-wk-hints.png "which-key pane")
 
+### Results in telescope picker
+![cscope telescope](./pics/5-cscope-telescope.webm "cscope telescope")

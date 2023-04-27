@@ -8,6 +8,7 @@ M.opts = {
 	disable_maps = false,
 	cscope = {
 		db_file = "./cscope.out",
+		use_telescope = false,
 	},
 }
 
@@ -125,7 +126,7 @@ local keymap_w_wk = function(wk)
 end
 
 M.setup = function(opts)
-	M.opts = vim.tbl_extend("force", M.opts, opts)
+	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
 
 	local cscope = "Cscope"
 
@@ -136,7 +137,7 @@ M.setup = function(opts)
 		cscope = "cscope"
 	else
 		-- Use cscope lua port
-		require("cscope.cscope").setup({ M.opts.cscope })
+		require("cscope.cscope").setup(M.opts.cscope)
 	end
 
 	-- function to print xcscpoe.el like prompts

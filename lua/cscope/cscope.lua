@@ -1,6 +1,9 @@
 local M = {}
 
-M.opts = { db_file = "./cscope.out" }
+M.opts = {
+	db_file = "./cscope.out",
+	use_telescope = false,
+}
 
 -- operation symbol to number map
 M.op_s_n = {
@@ -20,6 +23,8 @@ M.op_n_s = {}
 for k, v in pairs(M.op_s_n) do
 	M.op_n_s[v] = k
 end
+
+local cscope_telescope_picker = nil
 
 local cscope_help = function()
 	print([[
@@ -100,10 +105,16 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 	end
 
 	local parsed_output = cscope_parse_output(output)
+	local title = "cscope find " .. op_s .. " " .. symbol
 
-	vim.fn.setqflist(parsed_output, "r")
-	vim.fn.setqflist({}, "a", { title = "cscope find " .. op_s .. " " .. symbol })
-	vim.api.nvim_command("copen 5")
+	if M.opts.use_telescope then
+		cscope_telescope_picker.prepare(parsed_output, title)
+		cscope_telescope_picker.run()
+	else
+		vim.fn.setqflist(parsed_output, "r")
+		vim.fn.setqflist({}, "a", { title = title })
+		vim.api.nvim_command("copen 5")
+	end
 end
 
 local cscope_find = function(op, symbol)
@@ -157,11 +168,15 @@ local cscope_user_command = function()
 end
 
 M.setup = function(opts)
-	M.opts = vim.tbl_extend("force", M.opts, opts)
+	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
 	-- This variable can be used by other plugins to change db_file
 	-- e.g. vim-gutentags can use it for when
 	--	vim.g.gutentags_cache_dir is enabled.
 	vim.g.cscope_maps_db_file = nil
+
+	if M.opts.use_telescope then
+		cscope_telescope_picker = require("cscope.telescope_picker")
+	end
 	cscope_user_command()
 end
 

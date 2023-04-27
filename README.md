@@ -12,7 +12,7 @@ Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.
 - Only want to use Cscope? No worries, keymaps can be disabled using `disable_maps` option.
 
 # Features
-* Opens results in quickfix window.
+* Opens results in quickfix window or **telescope**.
 * Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints baked in.
 * See [this](https://github.com/dhananjaylatkar/cscope_maps.nvim/edit/main/README.md#vim-gutentags) for `vim-gutentags`.
 
@@ -146,4 +146,4 @@ vim.api.nvim_set_keymap(
 ![which-key Hints](./pics/4-wk-hints.png "which-key pane")
 
 ### Results in telescope picker
-![cscope telescope](./pics/5-cscope-telescope.webm "cscope telescope")
+![cscope telescope](./pics/5-cs-telescope.png "cscope telescope")

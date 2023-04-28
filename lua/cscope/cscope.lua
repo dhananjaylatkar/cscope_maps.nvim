@@ -88,7 +88,7 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 
 	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
 
-	if io.open(db_file, "r") == nil then
+	if vim.loop.fs_stat(db_file) == nil then
 		print("cscope: database file not found. [" .. db_file .. "]")
 		return
 	end

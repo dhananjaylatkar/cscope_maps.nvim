@@ -3,15 +3,27 @@ local M = {}
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local config = require("telescope.config")
+local utils = require("telescope.utils")
 
 local entry_maker = function(entry)
 	return {
 		value = entry,
-		display = string.gsub(entry["filename"], vim.loop.cwd() .. "/", "")
-			.. ":"
-			.. entry["lnum"]
-			.. " | "
-			.. entry["text"],
+		display = function()
+			local display_filename = utils.transform_path({}, entry["filename"])
+			local coordinates = string.format(":%s:", entry["lnum"])
+			local display_string = "%s%s%s"
+			local display, hl_group, icon = utils.transform_devicons(
+				entry["filename"],
+				string.format(display_string, display_filename, coordinates, entry["text"]),
+				false
+			)
+
+			if hl_group then
+				return display, { { { 1, #icon }, hl_group } }
+			else
+				return display
+			end
+		end,
 		ordinal = entry["filename"],
 		path = entry["filename"],
 		lnum = tonumber(entry["lnum"]),

@@ -33,6 +33,10 @@ require('cscope_maps').setup({
   cscope = {
     db_file = "./cscope.out", -- location of cscope db file
     use_telescope = false, -- true will show results in telescope picker
+    db_build_cmd = { -- cmd used for :Cscope build
+      exec = "cscope",
+      args = { "-bqkv" },
+    },
   },
 })
 ```
@@ -96,6 +100,7 @@ use({
 |`<leader>ci`| find files that include the filename under cursor|
 |`<leader>cd`| find functions that function under cursor calls |
 |`<leader>ca`| find places where this symbol is assigned a value |
+|`<leader>cb`| build cscope database |
 
 ### Custom Keymaps
 

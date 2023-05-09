@@ -3,6 +3,10 @@ local M = {}
 M.opts = {
 	db_file = "./cscope.out",
 	use_telescope = false,
+	db_build_cmd = {
+		exec = "cscope",
+		args = { "-bqkv" },
+	},
 }
 
 -- operation symbol to number map
@@ -39,6 +43,7 @@ find : Query for a pattern            (Usage: find a|c|d|e|f|g|i|s|t name)
        i: Find files #including this file
        s: Find this C symbol
        t: Find this text string
+build: Build cscope database          (Usage: build)
 help : Show this message              (Usage: help)
 ]])
 end
@@ -132,10 +137,53 @@ local cscope_find = function(op, symbol)
 	end
 end
 
+local function cscope_build_onread(err, data)
+	if err then
+		print("cscope: [build] err: ", err)
+	end
+	if data then
+		print("cscope: [build] out: ", data)
+	end
+end
+
+local cscope_build = function()
+	local stdout = vim.loop.new_pipe(false)
+	local stderr = vim.loop.new_pipe(false)
+	local cmd = M.opts.db_build_cmd
+
+	table.insert(cmd.args, "-f")
+	table.insert(cmd.args, M.opts.db_file)
+
+	local handle = nil
+	handle = vim.loop.spawn(
+		cmd.exec,
+		{
+			args = cmd.args,
+			stdio = { nil, stdout, stderr },
+		},
+		vim.schedule_wrap(function(code, _) -- on exit
+			stdout:read_stop()
+			stderr:read_stop()
+			stdout:close()
+			stderr:close()
+			handle:close()
+			if code == 0 then
+				print("cscope: database built successfully")
+			else
+				print("cscope: database build failed")
+			end
+		end)
+	)
+	vim.loop.read_start(stdout, cscope_build_onread)
+	vim.loop.read_start(stderr, cscope_build_onread)
+end
+
 M.cscope = function(cmd, op, symbol)
 	-- Parse top level output and call appropriate functions
 	if cmd == "find" then
 		cscope_find(op, symbol)
+	elseif cmd == "build" then
+		cscope_build()
 	elseif cmd == "help" or cmd == nil then
 		cscope_help()
 	else
@@ -150,7 +198,7 @@ local cscope_user_command = function()
 	end, {
 		nargs = "*",
 		complete = function(_, line)
-			local cmds = { "find", "help" }
+			local cmds = { "find", "build", "help" }
 			local l = vim.split(line, "%s+")
 			local n = #l - 2
 

@@ -6,10 +6,7 @@ local M = {}
 -- Configurable options
 M.opts = {
 	disable_maps = false,
-	cscope = {
-		db_file = "./cscope.out",
-		use_telescope = false,
-	},
+	cscope = {}, -- defaults are in cscope.lua
 }
 
 local inbuilt_cscope_opts = function()
@@ -44,6 +41,7 @@ local sym_map = {
 	["i"] = "Find files #including this file",
 	["d"] = "Find functions called by this function",
 	["a"] = "Find places where this symbol is assigned a value",
+	["b"] = "Build database",
 }
 local keymap_opts = { noremap = true, silent = true }
 
@@ -103,6 +101,7 @@ local keymap_wo_wk = function()
 		[[<cmd>lua require('cscope_maps').cscope_prompt('a', vim.fn.expand("<cword>"))<cr>]],
 		keymap_opts
 	)
+	vim.api.nvim_set_keymap("n", "<leader>cb", [[<cmd>Cscope build<cr>]], keymap_opts)
 end
 
 local keymap_w_wk = function(wk)
@@ -110,7 +109,7 @@ local keymap_w_wk = function(wk)
 	wk.register({
 		["<leader>"] = {
 			c = {
-				name = "+code",
+				name = "+cscope",
 				s = { "<cmd>lua require('cscope_maps').cscope_prompt('s', vim.fn.expand('<cword>'))<cr>", sym_map["s"] },
 				g = { "<cmd>lua require('cscope_maps').cscope_prompt('g', vim.fn.expand('<cword>'))<cr>", sym_map["g"] },
 				c = { "<cmd>lua require('cscope_maps').cscope_prompt('c', vim.fn.expand('<cword>'))<cr>", sym_map["c"] },
@@ -120,6 +119,7 @@ local keymap_w_wk = function(wk)
 				i = { "<cmd>lua require('cscope_maps').cscope_prompt('i', vim.fn.expand('<cfile>'))<cr>", sym_map["i"] },
 				d = { "<cmd>lua require('cscope_maps').cscope_prompt('d', vim.fn.expand('<cword>'))<cr>", sym_map["d"] },
 				a = { "<cmd>lua require('cscope_maps').cscope_prompt('a', vim.fn.expand('<cword>'))<cr>", sym_map["a"] },
+				b = { "<cmd>Cscope build<cr>", sym_map["b"] },
 			},
 		},
 	}, keymap_opts)

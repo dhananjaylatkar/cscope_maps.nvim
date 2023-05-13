@@ -10,6 +10,7 @@ Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.
 - Provides user command, `:Cscope` which acts same as good old `:cscope`.
 - No need to add cscope database (`:cscope add <file>`), it is automaticaly picked from current directory or `db_file` option.
 - Only want to use Cscope? No worries, keymaps can be disabled using `disable_maps` option.
+- Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 
 # Features
 * Opens results in quickfix window or **telescope**.
@@ -32,11 +33,9 @@ require('cscope_maps').setup({
   disable_maps = false, -- true disables my keymaps, only :Cscope will be loaded
   cscope = {
     db_file = "./cscope.out", -- location of cscope db file
+	exec = "cscope", -- "cscope" or "gtags-cscope"
     use_telescope = false, -- true will show results in telescope picker
-    db_build_cmd = { -- cmd used for :Cscope build
-      exec = "cscope",
-      args = { "-bqkv" },
-    },
+	db_build_cmd_args = { "-bqkv" }, -- args used for db build (:Cscope build)
   },
 })
 ```

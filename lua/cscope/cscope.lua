@@ -2,11 +2,9 @@ local M = {}
 
 M.opts = {
 	db_file = "./cscope.out",
+	exec = "cscope",
 	use_telescope = false,
-	db_build_cmd = {
-		exec = "cscope",
-		args = { "-bqkv" },
-	},
+	db_build_cmd_args = { "-bqkv" },
 }
 
 -- operation symbol to number map
@@ -89,15 +87,30 @@ local cscope_parse_output = function(cs_out)
 end
 
 local cscope_find_helper = function(op_n, op_s, symbol)
-	-- Executes cscope command and shows result in QuickFix List
+	-- Executes cscope search and shows result in QuickFix List or Telescope
 
 	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
+	local cmd = M.opts.exec
 
-	if vim.loop.fs_stat(db_file) == nil then
-		print("cscope: database file not found. [" .. db_file .. "]")
+	if cmd == "cscope" then
+		cmd = cmd .. " " .. "-f " .. db_file
+	elseif cmd == "gtags-cscope" then
+		if op_s == "d" then
+			print("cscope: 'd' operation is not available for " .. M.opts.exec)
+			return
+		end
+		db_file = "GTAGS" -- This is only used to verify whether db is created or not.
+	else
+		print("cscope: " .. "'" .. cmd .. "' executable is not supported")
 		return
 	end
-	local cmd = "cscope -dL -f " .. db_file .. " -" .. op_n .. " " .. symbol
+
+	if vim.loop.fs_stat(db_file) == nil then
+		print("cscope: db file not found [" .. db_file .. "]. Create using :Cs build")
+		return
+	end
+
+	cmd = cmd .. " -dL" .. " -" .. op_n .. " " .. symbol
 
 	local file = assert(io.popen(cmd, "r"))
 	file:flush()
@@ -149,16 +162,18 @@ end
 local cscope_build = function()
 	local stdout = vim.loop.new_pipe(false)
 	local stderr = vim.loop.new_pipe(false)
-	local cmd = M.opts.db_build_cmd
+	local db_build_cmd_args = M.opts.db_build_cmd_args
 
-	table.insert(cmd.args, "-f")
-	table.insert(cmd.args, M.opts.db_file)
+	if M.opts.exec == "cscope" then
+		table.insert(db_build_cmd_args, "-f")
+		table.insert(db_build_cmd_args, M.opts.db_file)
+	end
 
 	local handle = nil
 	handle = vim.loop.spawn(
-		cmd.exec,
+		M.opts.exec,
 		{
-			args = cmd.args,
+			args = db_build_cmd_args,
 			stdio = { nil, stdout, stderr },
 		},
 		vim.schedule_wrap(function(code, _) -- on exit

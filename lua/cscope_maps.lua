@@ -131,7 +131,7 @@ M.setup = function(opts)
 	local cscope = "Cscope"
 
 	if is_supported_version() then
-		if vim.loop.fs_stat(M.opts.cscope.db_file, "r") ~= nil then
+		if vim.loop.fs_stat(M.opts.cscope.db_file) ~= nil then
 			inbuilt_cscope_opts()
 		end
 		cscope = "cscope"

@@ -3,26 +3,26 @@ For old school code navigation :)
 
 Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
-🌟 Now with `cscope` support for Neovim 0.9+
+**Now with `cscope` support for Neovim 0.9+**
 
-* [🌟 Cscope support](#🌟-cscope-support)
+
+* [🌟 Cscope support](#-cscope-support)
 * [Features](#features)
 * [Installaion](#installaion)
-  * [[packer](https://github.com/wbthomason/packer.nvim)](#[packer](https://github.com/wbthomason/packer.nvim))
-  * [If you are lazy-loading which-key.nvim then, load cscope_maps.nvim after which-key.nvim](#if-you-are-lazy-loading-which-key.nvim-then,-load-cscope_maps.nvim-after-which-key.nvim)
-  * [[vim-plug](https://github.com/junegunn/vim-plug)](#[vim-plug](https://github.com/junegunn/vim-plug))
+  * [packer](#packer)
+  * [vim-plug](#vim-plug)
 * [vim-gutentags](#vim-gutentags)
   * [Config for vim-gutentags](#config-for-vim-gutentags)
 * [Keymaps](#keymaps)
   * [Default Keymaps](#default-keymaps)
   * [Custom Keymaps](#custom-keymaps)
-    * [Using `cscope_prompt()` function](#using-`cscope_prompt()`-function)
-    * [Using `:Cscope` command](#using-`:cscope`-command)
+    * [Using `cscope_prompt()` function](#using-cscope_prompt-function)
+    * [Using `:Cscope` command](#using-cscope-command)
 * [Sreenshots](#sreenshots)
-  * [Asks for input when invoked. (Default input is word/file under cursor)](#asks-for-input-when-invoked.-(default-input-is-word/file-under-cursor))
-  * [Opens results in Quickfix window.](#opens-results-in-quickfix-window.)
-  * [Results in telescope picker.](#results-in-telescope-picker.)
-  * [[which-key](https://github.com/folke/which-key.nvim) hints.](#[which-key](https://github.com/folke/which-key.nvim)-hints.)
+  * [Asks for input when invoked](#asks-for-input-when-invoked-default-input-is-wordfile-under-cursor)
+  * [Opens results in Quickfix window](#opens-results-in-quickfix-window)
+  * [Results in telescope picker](#results-in-telescope-picker)
+  * [which-key hints](#which-key-hints)
 
 ## 🌟 Cscope support
 - Tries to mimic vim's builtin cscope functionality.
@@ -60,7 +60,7 @@ require('cscope_maps').setup({
 })
 ```
 
-**Make sure to load after **
+**Make sure to load after which-key**
 ```lua
 use({
   "dhananjaylatkar/cscope_maps.nvim",
@@ -162,13 +162,13 @@ vim.api.nvim_set_keymap(
 
 ![Input](./pics/2-input-prompt.png "Input")
 
-### Opens results in Quickfix window.
+### Opens results in Quickfix window
 
 ![Quickfix](./pics/3-qf-window.png "Quickfix window")
 
-### Results in telescope picker.
+### Results in telescope picker
 ![cscope telescope](./pics/5-cs-telescope.png "cscope telescope")
 
-### [which-key](https://github.com/folke/which-key.nvim) hints.
+### [which-key](https://github.com/folke/which-key.nvim) hints
 
 ![which-key Hints](./pics/4-wk-hints.png "which-key pane")

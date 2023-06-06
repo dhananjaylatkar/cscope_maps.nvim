@@ -33,7 +33,7 @@ end
 local finder = nil
 local prompt_title = nil
 
-M.prepare = function(cscope_parsed_output, telescope_title)
+local prepare = function(cscope_parsed_output, telescope_title)
 	finder = finders.new_table({
 		results = cscope_parsed_output,
 		entry_maker = entry_maker,
@@ -45,6 +45,7 @@ end
 M.run = function(opts)
 	opts = opts or {}
 	opts.entry_maker = entry_maker
+	prepare(opts.cscope.parsed_output, opts.cscope.prompt_title)
 
 	pickers
 		.new(opts, {

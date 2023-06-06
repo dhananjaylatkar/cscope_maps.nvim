@@ -3,7 +3,7 @@ local M = {}
 M.opts = {
 	db_file = "./cscope.out",
 	exec = "cscope",
-	use_telescope = false,
+	picker = "quickfix",
 	db_build_cmd_args = { "-bqkv" },
 }
 
@@ -26,7 +26,7 @@ for k, v in pairs(M.op_s_n) do
 	M.op_n_s[v] = k
 end
 
-local cscope_telescope_picker = nil
+local cscope_picker = nil
 
 local cscope_help = function()
 	print([[
@@ -125,10 +125,16 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 	local parsed_output = cscope_parse_output(output)
 	local title = "cscope find " .. op_s .. " " .. symbol
 
-	if M.opts.use_telescope then
-		cscope_telescope_picker.prepare(parsed_output, title)
-		cscope_telescope_picker.run()
+	if cscope_picker then
+		-- Telescope or FzfLua
+		local opts = {}
+		opts.cscope = {}
+		opts.cscope.parsed_output = parsed_output
+		opts.cscope.prompt_title = title
+
+		cscope_picker.run(opts)
 	else
+		-- QuickFix
 		vim.fn.setqflist(parsed_output, "r")
 		vim.fn.setqflist({}, "a", { title = title })
 		vim.api.nvim_command("copen 5")
@@ -237,9 +243,12 @@ M.setup = function(opts)
 	--	vim.g.gutentags_cache_dir is enabled.
 	vim.g.cscope_maps_db_file = nil
 
-	if M.opts.use_telescope then
-		cscope_telescope_picker = require("cscope.telescope_picker")
+	if M.opts.picker == "telescope" then
+		cscope_picker = require("cscope.pickers.telescope")
+	elseif M.opts.picker == "fzf-lua" then
+		cscope_picker = require("cscope.pickers.fzf-lua")
 	end
+
 	cscope_user_command()
 end
 

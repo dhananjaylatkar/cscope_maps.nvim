@@ -5,27 +5,47 @@ Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.
 
 🌟 Now with `cscope` support for Neovim 0.9+
 
-# 🌟 Cscope support
+* [🌟 Cscope support](#🌟-cscope-support)
+* [Features](#features)
+* [Installaion](#installaion)
+  * [[packer](https://github.com/wbthomason/packer.nvim)](#[packer](https://github.com/wbthomason/packer.nvim))
+  * [If you are lazy-loading which-key.nvim then, load cscope_maps.nvim after which-key.nvim](#if-you-are-lazy-loading-which-key.nvim-then,-load-cscope_maps.nvim-after-which-key.nvim)
+  * [[vim-plug](https://github.com/junegunn/vim-plug)](#[vim-plug](https://github.com/junegunn/vim-plug))
+* [vim-gutentags](#vim-gutentags)
+  * [Config for vim-gutentags](#config-for-vim-gutentags)
+* [Keymaps](#keymaps)
+  * [Default Keymaps](#default-keymaps)
+  * [Custom Keymaps](#custom-keymaps)
+    * [Using `cscope_prompt()` function](#using-`cscope_prompt()`-function)
+    * [Using `:Cscope` command](#using-`:cscope`-command)
+* [Sreenshots](#sreenshots)
+  * [Asks for input when invoked. (Default input is word/file under cursor)](#asks-for-input-when-invoked.-(default-input-is-word/file-under-cursor))
+  * [Opens results in Quickfix window.](#opens-results-in-quickfix-window.)
+  * [Results in telescope picker.](#results-in-telescope-picker.)
+  * [[which-key](https://github.com/folke/which-key.nvim) hints.](#[which-key](https://github.com/folke/which-key.nvim)-hints.)
+
+## 🌟 Cscope support
 - Tries to mimic vim's builtin cscope functionality.
 - Provides user command, `:Cscope` which acts same as good old `:cscope`.
 - No need to add cscope database (`:cscope add <file>`), it is automaticaly picked from current directory or `db_file` option.
 - Only want to use Cscope? No worries, keymaps can be disabled using `disable_maps` option.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 
-# Features
-* Opens results in quickfix window or **telescope**.
+## Features
+* Opens results in quickfix, **telescope**, or **fzf-lua**.
 * Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints baked in.
 * See [this](https://github.com/dhananjaylatkar/cscope_maps.nvim/edit/main/README.md#vim-gutentags) for `vim-gutentags`.
 
-# Installaion
+## Installaion
 Install the plugin with your preferred package manager.
 
-## [packer](https://github.com/wbthomason/packer.nvim)
+### [packer](https://github.com/wbthomason/packer.nvim)
 ``` lua
 -- Lua
 use 'dhananjaylatkar/cscope_maps.nvim' -- cscope keymaps
 use 'folke/which-key.nvim' -- optional
-use 'nvim-telescope/telescope.nvim' -- required for use_telescope option
+use 'nvim-telescope/telescope.nvim' -- required for picker = "telescope"
+use 'ibhagwan/fzf-lua' -- required for picker = "fzf-lua"
 
 -- load cscope maps
 -- pass empty table to setup({}) for default options
@@ -33,14 +53,14 @@ require('cscope_maps').setup({
   disable_maps = false, -- true disables my keymaps, only :Cscope will be loaded
   cscope = {
     db_file = "./cscope.out", -- location of cscope db file
-	exec = "cscope", -- "cscope" or "gtags-cscope"
-    use_telescope = false, -- true will show results in telescope picker
-	db_build_cmd_args = { "-bqkv" }, -- args used for db build (:Cscope build)
+    exec = "cscope", -- "cscope" or "gtags-cscope"
+    picker = "quickfix", -- "telescope", "fzf-lua" or "quickfix"
+    db_build_cmd_args = { "-bqkv" }, -- args used for db build (:Cscope build)
   },
 })
 ```
 
-### If you are lazy-loading which-key.nvim then, load cscope_maps.nvim after which-key.nvim
+**Make sure to load after **
 ```lua
 use({
   "dhananjaylatkar/cscope_maps.nvim",
@@ -51,19 +71,20 @@ use({
 })
 ```
 
-## [vim-plug](https://github.com/junegunn/vim-plug)
+### [vim-plug](https://github.com/junegunn/vim-plug)
 ```vim
 " Vim Script
 Plug 'dhananjaylatkar/cscope_maps.nvim' " cscope keymaps
 Plug 'folke/which-key.nvim' " optional
-Plug 'nvim-telescope/telescope.nvim' " required for use_telescope option
+Plug 'nvim-telescope/telescope.nvim' " required for picker = 'telescope'
+Plug 'ibhagwan/fzf-lua' " required for picker = 'fzf-lua'
 
 lua << EOF
   require("cscope_maps").setup({})
 EOF
 ```
 
-# vim-gutentags
+## vim-gutentags
 
 Cscope provided by this plugin is not exactly same as built-in vim cscope, vim-gutentags fails to load.
 
@@ -84,7 +105,7 @@ use({
 })
 ```
 
-# Keymaps
+## Keymaps
 
 ### Default Keymaps
 
@@ -135,7 +156,7 @@ vim.api.nvim_set_keymap(
 ) 
 ```
 
-# Sreenshots
+## Sreenshots
 
 ### Asks for input when invoked. (Default input is word/file under cursor)
 
@@ -145,9 +166,9 @@ vim.api.nvim_set_keymap(
 
 ![Quickfix](./pics/3-qf-window.png "Quickfix window")
 
-### [which-key](https://github.com/folke/which-key.nvim) hints are baked in.
+### Results in telescope picker.
+![cscope telescope](./pics/5-cs-telescope.png "cscope telescope")
+
+### [which-key](https://github.com/folke/which-key.nvim) hints.
 
 ![which-key Hints](./pics/4-wk-hints.png "which-key pane")
-
-### Results in telescope picker
-![cscope telescope](./pics/5-cs-telescope.png "cscope telescope")

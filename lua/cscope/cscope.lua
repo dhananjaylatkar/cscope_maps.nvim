@@ -4,6 +4,7 @@ M.opts = {
 	db_file = "./cscope.out",
 	exec = "cscope",
 	picker = "quickfix",
+	skip_picker_for_single_result = false,
 	db_build_cmd_args = { "-bqkv" },
 }
 
@@ -124,6 +125,11 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 
 	local parsed_output = cscope_parse_output(output)
 	local title = "cscope find " .. op_s .. " " .. symbol
+
+	if M.opts.skip_picker_for_single_result and #parsed_output == 1 then
+		vim.api.nvim_command("edit +" .. parsed_output[1]["lnum"] .. " " .. parsed_output[1]["filename"])
+		return
+	end
 
 	if cscope_picker then
 		-- Telescope or FzfLua

@@ -6,9 +6,10 @@ Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.
 **Now with `cscope` support for Neovim 0.9+**
 
 
-* [🌟 Cscope support](#-cscope-support)
+* [Cscope support](#-cscope-support)
 * [Features](#features)
 * [Installaion](#installaion)
+  * [lazy.nvim](#lazynvim)
   * [packer](#packer)
   * [vim-plug](#vim-plug)
 * [vim-gutentags](#vim-gutentags)
@@ -40,35 +41,50 @@ Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.
 ## Installaion
 Install the plugin with your preferred package manager.
 
+### [lazy.nvim](https://github.com/folke/lazy.nvim)
+``` lua
+{
+  "dhananjaylatkar/cscope_maps.nvim",
+  dependencies = {
+    "folke/which-key.nvim", -- optional [for whichkey hints]
+    "nvim-telescope/telescope.nvim", -- optional [for picker="telescope"]
+    "ibhagwan/fzf-lua", -- optional [for picker="fzf-lua"]
+    "nvim-tree/nvim-web-devicons", -- optional [for devicons in telescope or fzf]
+  },
+  config = function()
+    -- pass empty table to setup() for default options
+    require("cscope_maps").setup({
+      disable_maps = false, -- true disables keymaps, only :Cscope will be loaded
+      cscope = {
+        db_file = "./cscope.out", -- location of cscope db file
+        exec = "cscope", -- "cscope" or "gtags-cscope"
+        picker = "quickfix", -- "telescope", "fzf-lua" or "quickfix"
+        skip_picker_for_single_result = false, -- jump directly to position for single result
+        db_build_cmd_args = { "-bqkv" }, -- args used for db build (:Cscope build)
+      },
+    })
+  end,
+}
+```
 ### [packer](https://github.com/wbthomason/packer.nvim)
 ``` lua
--- Lua
 use 'dhananjaylatkar/cscope_maps.nvim' -- cscope keymaps
-use 'folke/which-key.nvim' -- optional
-use 'nvim-telescope/telescope.nvim' -- required for picker = "telescope"
-use 'ibhagwan/fzf-lua' -- required for picker = "fzf-lua"
+use 'folke/which-key.nvim' -- optional [for whichkey hints]
+use 'nvim-telescope/telescope.nvim' -- optional [for picker="telescope"]
+use 'ibhagwan/fzf-lua' -- optional [for picker="fzf-lua"]
+use 'nvim-tree/nvim-web-devicons' -- optional [for devicons in telescope or fzf]
 
 -- load cscope maps
--- pass empty table to setup({}) for default options
-require('cscope_maps').setup({
-  disable_maps = false, -- true disables my keymaps, only :Cscope will be loaded
-  cscope = {
-    db_file = "./cscope.out", -- location of cscope db file
-    exec = "cscope", -- "cscope" or "gtags-cscope"
-    picker = "quickfix", -- "telescope", "fzf-lua" or "quickfix"
-    skip_picker_for_single_result = false, -- jump directly to position for single result
-    db_build_cmd_args = { "-bqkv" }, -- args used for db build (:Cscope build)
-  },
-})
+require('cscope_maps').setup({})
 ```
 
 ### [vim-plug](https://github.com/junegunn/vim-plug)
 ```vim
-" Vim Script
 Plug 'dhananjaylatkar/cscope_maps.nvim' " cscope keymaps
-Plug 'folke/which-key.nvim' " optional
-Plug 'nvim-telescope/telescope.nvim' " required for picker = 'telescope'
-Plug 'ibhagwan/fzf-lua' " required for picker = 'fzf-lua'
+Plug 'folke/which-key.nvim' " optional [for whichkey hints]
+Plug 'nvim-telescope/telescope.nvim' " roptional [for picker='telescope']
+Plug 'ibhagwan/fzf-lua' " optional [for picker='fzf-lua']
+Plug 'nvim-tree/nvim-web-devicons' " optional [for devicons in telescope or fzf]
 
 lua << EOF
   require("cscope_maps").setup({})
@@ -102,16 +118,16 @@ use({
 
 | Keymaps               | Description                                         |
 |-----------------------|-----------------------------------------------------|
-| <kbd><leader>cs</kbd> | find all references to the token under cursor       |
-| <kbd><leader>cg</kbd> | find global definition(s) of the token under cursor |
-| <kbd><leader>cc</kbd> | find all calls to the function name under cursor    |
-| <kbd><leader>ct</kbd> | find all instances of the text under cursor         |
-| <kbd><leader>ce</kbd> | egrep search for the word under cursor              |
-| <kbd><leader>cf</kbd> | open the filename under cursor                      |
-| <kbd><leader>ci</kbd> | find files that include the filename under cursor   |
-| <kbd><leader>cd</kbd> | find functions that function under cursor calls     |
-| <kbd><leader>ca</kbd> | find places where this symbol is assigned a value   |
-| <kbd><leader>cb</kbd> | build cscope database                               |
+| `<leader>cs` | find all references to the token under cursor       |
+| `<leader>cg` | find global definition(s) of the token under cursor |
+| `<leader>cc` | find all calls to the function name under cursor    |
+| `<leader>ct` | find all instances of the text under cursor         |
+| `<leader>ce` | egrep search for the word under cursor              |
+| `<leader>cf` | open the filename under cursor                      |
+| `<leader>ci` | find files that include the filename under cursor   |
+| `<leader>cd` | find functions that function under cursor calls     |
+| `<leader>ca` | find places where this symbol is assigned a value   |
+| `<leader>cb` | build cscope database                               |
 | <kbd>Ctrl-]</kbd>     | do `:Cstag <cword>`                                 |
 
 ### Custom Keymaps

@@ -1,3 +1,5 @@
+local util = require("cscope.util")
+local RC = util.ret_codes
 local M = {}
 
 M.opts = {
@@ -117,17 +119,17 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 	elseif cmd == "gtags-cscope" then
 		if op_s == "d" then
 			print("cscope: 'd' operation is not available for " .. M.opts.exec)
-			return
+			return RC.INVALID_OP
 		end
 		db_file = "GTAGS" -- This is only used to verify whether db is created or not.
 	else
 		print("cscope: " .. "'" .. cmd .. "' executable is not supported")
-		return
+		return RC.INVALID_EXEC
 	end
 
 	if vim.loop.fs_stat(db_file) == nil then
 		print("cscope: db file not found [" .. db_file .. "]. Create using :Cs build")
-		return
+		return RC.DB_NOT_FOUND
 	end
 
 	cmd = cmd .. " -dL" .. " -" .. op_n .. " " .. symbol
@@ -139,7 +141,7 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 
 	if output == "" then
 		print("cscope: no results for 'cscope find " .. op_s .. " " .. symbol .. "'")
-		return
+		return RC.NO_RESULTS
 	end
 
 	local parsed_output = cscope_parse_output(output)
@@ -150,7 +152,7 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 
 	if M.opts.skip_picker_for_single_result and #parsed_output == 1 then
 		vim.api.nvim_command("edit +" .. parsed_output[1]["lnum"] .. " " .. parsed_output[1]["filename"])
-		return
+		return RC.SUCCESS
 	end
 
 	if cscope_picker then
@@ -167,21 +169,37 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 		vim.fn.setqflist({}, "a", { title = title })
 		vim.api.nvim_command("copen 5")
 	end
+	return RC.SUCCESS
 end
 
 local cscope_find = function(op, symbol)
 	op = tostring(op)
 	if #op ~= 1 then
 		print("cscope: operation '" .. op .. "' is invalid")
-		return
+		return RC.INVALID_OP
 	end
+
 	if string.find("012346789", op) then
-		cscope_find_helper(op, M.op_n_s[op], symbol)
+		return cscope_find_helper(op, M.op_n_s[op], symbol)
 	elseif string.find("sgdctefia", op) then
-		cscope_find_helper(M.op_s_n[op], op, symbol)
+		return cscope_find_helper(M.op_s_n[op], op, symbol)
 	else
 		print("cscope: operation '" .. op .. "' is invalid")
+		return RC.INVALID_OP
 	end
+
+	return RC.SUCCESS
+end
+
+local cscope_cstag = function(symbol)
+	if cscope_find("g", symbol) ~= RC.SUCCESS then
+		if vim.loop.fs_stat("./tags") == nil then
+			print("cscope: ctags file not found. Create using 'ctags -R'")
+			return RC.DB_NOT_FOUND
+		end
+		vim.api.nvim_command("tag " .. symbol)
+	end
+	return RC.SUCCESS
 end
 
 local function cscope_build_onread(err, data)
@@ -227,7 +245,7 @@ local cscope_build = function()
 	vim.loop.read_start(stderr, cscope_build_onread)
 end
 
-M.cscope = function(cmd, op, symbol)
+local cscope = function(cmd, op, symbol)
 	-- Parse top level output and call appropriate functions
 	if cmd == "find" then
 		cscope_find(op, symbol)
@@ -241,9 +259,9 @@ M.cscope = function(cmd, op, symbol)
 end
 
 local cscope_user_command = function()
-	-- Create the user command
+	-- Create the :Cscope user command
 	vim.api.nvim_create_user_command("Cscope", function(opts)
-		M.cscope(unpack(opts.fargs))
+		cscope(unpack(opts.fargs))
 	end, {
 		nargs = "*",
 		complete = function(_, line)
@@ -261,6 +279,13 @@ local cscope_user_command = function()
 				return vim.tbl_keys(M.op_s_n)
 			end
 		end,
+	})
+
+	-- Create the :Cstag user command
+	vim.api.nvim_create_user_command("Cstag", function(opts)
+		cscope_cstag(unpack(opts.fargs))
+	end, {
+		nargs = "*",
 	})
 end
 

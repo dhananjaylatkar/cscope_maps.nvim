@@ -163,6 +163,8 @@ M.setup = function(opts)
 	end
 
 	-- Mappings
+	vim.api.nvim_set_keymap("n", "<C-]>", [[<cmd>exe "Cstag" expand("<cword>")<cr>]], keymap_opts)
+
 	local ok, wk = pcall(require, "which-key")
 	if not ok then
 		keymap_wo_wk()

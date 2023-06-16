@@ -30,6 +30,7 @@ Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.
 - No need to add cscope database (`:cscope add <file>`), it is automaticaly picked from current directory or `db_file` option.
 - Only want to use Cscope? No worries, keymaps can be disabled using `disable_maps` option.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
+- `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
 
 ## Features
 * Opens results in quickfix, **telescope**, or **fzf-lua**.
@@ -58,17 +59,6 @@ require('cscope_maps').setup({
     skip_picker_for_single_result = false, -- jump directly to position for single result
     db_build_cmd_args = { "-bqkv" }, -- args used for db build (:Cscope build)
   },
-})
-```
-
-**Make sure to load after which-key**
-```lua
-use({
-  "dhananjaylatkar/cscope_maps.nvim",
-  after = "which-key.nvim",
-  config = function()
-    require("cscope_maps").setup({})
-  end,
 })
 ```
 
@@ -110,18 +100,19 @@ use({
 
 ### Default Keymaps
 
-| Keymaps | Description |
-|--- | --- |
-|`<leader>cs`| find all references to the token under cursor |
-|`<leader>cg`| find global definition(s) of the token under cursor |
-|`<leader>cc`| find all calls to the function name under cursor |
-|`<leader>ct`| find all instances of the text under cursor |
-|`<leader>ce`| egrep search for the word under cursor |
-|`<leader>cf`| open the filename under cursor |
-|`<leader>ci`| find files that include the filename under cursor|
-|`<leader>cd`| find functions that function under cursor calls |
-|`<leader>ca`| find places where this symbol is assigned a value |
-|`<leader>cb`| build cscope database |
+| Keymaps               | Description                                         |
+|-----------------------|-----------------------------------------------------|
+| <kbd><leader>cs</kbd> | find all references to the token under cursor       |
+| <kbd><leader>cg</kbd> | find global definition(s) of the token under cursor |
+| <kbd><leader>cc</kbd> | find all calls to the function name under cursor    |
+| <kbd><leader>ct</kbd> | find all instances of the text under cursor         |
+| <kbd><leader>ce</kbd> | egrep search for the word under cursor              |
+| <kbd><leader>cf</kbd> | open the filename under cursor                      |
+| <kbd><leader>ci</kbd> | find files that include the filename under cursor   |
+| <kbd><leader>cd</kbd> | find functions that function under cursor calls     |
+| <kbd><leader>ca</kbd> | find places where this symbol is assigned a value   |
+| <kbd><leader>cb</kbd> | build cscope database                               |
+| <kbd>Ctrl-]</kbd>     | do `:Cstag <cword>`                                 |
 
 ### Custom Keymaps
 
@@ -152,7 +143,7 @@ e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol unde
 vim.api.nvim_set_keymap(
   "n",
   "<C-c><C-g>",
-  '<cmd>Cscope find g vim.fn.expand("<cword>"))<cr>',
+  [[<cmd>exe "Cscope find g" expand("<cword>"))<cr>]],
   { noremap = true, silent = true }
 ) 
 ```

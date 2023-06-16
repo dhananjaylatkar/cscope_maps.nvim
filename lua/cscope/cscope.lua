@@ -47,6 +47,25 @@ help : Show this message              (Usage: help)
 ]])
 end
 
+local cscope_push_tagstack = function()
+	local from = { vim.fn.bufnr("%"), vim.fn.line("."), vim.fn.col("."), 0 }
+	local items = { { tagname = vim.fn.expand("<cword>"), from = from } }
+	local ts = vim.fn.gettagstack()
+	local ts_last_item = ts.items[ts.length]
+
+	if
+		ts_last_item
+		and ts_last_item.tagname == items[1].tagname
+		and ts_last_item.from[1] == items[1].from[1]
+		and ts_last_item.from[2] == items[1].from[2]
+	then
+		-- Don't push duplicates on tagstack
+		return
+	end
+
+	vim.fn.settagstack(vim.fn.win_getid(), { items = items }, "t")
+end
+
 local cscope_parse_line = function(line)
 	local t = {}
 
@@ -125,6 +144,9 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 
 	local parsed_output = cscope_parse_output(output)
 	local title = "cscope find " .. op_s .. " " .. symbol
+
+	-- Push current symbol on tagstack
+	cscope_push_tagstack()
 
 	if M.opts.skip_picker_for_single_result and #parsed_output == 1 then
 		vim.api.nvim_command("edit +" .. parsed_output[1]["lnum"] .. " " .. parsed_output[1]["filename"])

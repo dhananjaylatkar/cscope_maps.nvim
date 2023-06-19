@@ -51,19 +51,17 @@ Install the plugin with your preferred package manager.
     "ibhagwan/fzf-lua", -- optional [for picker="fzf-lua"]
     "nvim-tree/nvim-web-devicons", -- optional [for devicons in telescope or fzf]
   },
-  config = function()
-    -- pass empty table to setup() for default options
-    require("cscope_maps").setup({
-      disable_maps = false, -- true disables keymaps, only :Cscope will be loaded
-      cscope = {
-        db_file = "./cscope.out", -- location of cscope db file
-        exec = "cscope", -- "cscope" or "gtags-cscope"
-        picker = "quickfix", -- "telescope", "fzf-lua" or "quickfix"
-        skip_picker_for_single_result = false, -- jump directly to position for single result
-        db_build_cmd_args = { "-bqkv" }, -- args used for db build (:Cscope build)
-      },
-    })
-  end,
+  opts = {
+    disable_maps = false, -- "true" disables default keymaps
+    skip_input_prompt = false, -- "true" doesn't ask for input
+    cscope = {
+      db_file = "./cscope.out", -- location of cscope db file
+      exec = "cscope", -- "cscope" or "gtags-cscope"
+      picker = "quickfix", -- "telescope", "fzf-lua" or "quickfix"
+      skip_picker_for_single_result = false, -- jump directly to position for single result
+      db_build_cmd_args = { "-bqkv" }, -- args used for db build (:Cscope build)
+    }
+  },
 }
 ```
 ### [packer](https://github.com/wbthomason/packer.nvim)
@@ -75,7 +73,7 @@ use 'ibhagwan/fzf-lua' -- optional [for picker="fzf-lua"]
 use 'nvim-tree/nvim-web-devicons' -- optional [for devicons in telescope or fzf]
 
 -- load cscope maps
-require('cscope_maps').setup({})
+require('cscope_maps').setup()
 ```
 
 ### [vim-plug](https://github.com/junegunn/vim-plug)
@@ -87,7 +85,7 @@ Plug 'ibhagwan/fzf-lua' " optional [for picker='fzf-lua']
 Plug 'nvim-tree/nvim-web-devicons' " optional [for devicons in telescope or fzf]
 
 lua << EOF
-  require("cscope_maps").setup({})
+  require("cscope_maps").setup()
 EOF
 ```
 

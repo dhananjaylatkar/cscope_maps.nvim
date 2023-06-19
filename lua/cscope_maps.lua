@@ -5,7 +5,8 @@ local M = {}
 
 -- Configurable options
 M.opts = {
-	disable_maps = false,
+	disable_maps = false, -- "true" disables default keymaps
+	skip_input_prompt = false, -- "true" doesn't ask for input
 	cscope = {}, -- defaults are in cscope.lua
 }
 
@@ -126,6 +127,7 @@ local keymap_w_wk = function(wk)
 end
 
 M.setup = function(opts)
+	opts = opts or {}
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
 
 	local cscope = "Cscope"
@@ -142,19 +144,23 @@ M.setup = function(opts)
 
 	-- function to print xcscpoe.el like prompts
 	M.cscope_prompt = function(operation, default_symbol)
-		local prompt = sym_map[operation] .. " (default: '" .. default_symbol .. "'): "
 		local cmd = cscope .. " find " .. operation
-		vim.ui.input({ prompt = prompt }, function(new_symbol)
-			if new_symbol and new_symbol ~= "" then
-				cmd = cmd .. " " .. new_symbol
-			else
-				cmd = cmd .. " " .. default_symbol
-			end
-			vim.api.nvim_command(cmd)
-			if is_supported_version() then
-				vim.api.nvim_command("copen")
-			end
-		end)
+		if M.opts.skip_input_prompt then
+			cmd = cmd .. " " .. default_symbol
+		else
+			local prompt = sym_map[operation] .. " (default: '" .. default_symbol .. "'): "
+			vim.ui.input({ prompt = prompt }, function(new_symbol)
+				if new_symbol and new_symbol ~= "" then
+					cmd = cmd .. " " .. new_symbol
+				else
+					cmd = cmd .. " " .. default_symbol
+				end
+			end)
+		end
+		vim.api.nvim_command(cmd)
+		if is_supported_version() then
+			vim.api.nvim_command("copen")
+		end
 	end
 
 	if M.opts.disable_maps then

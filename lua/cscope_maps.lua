@@ -126,6 +126,13 @@ local keymap_w_wk = function(wk)
 	}, keymap_opts)
 end
 
+local run_cscope_command = function(cmd)
+	vim.api.nvim_command(cmd)
+	if is_supported_version() then
+		vim.api.nvim_command("copen")
+	end
+end
+
 M.setup = function(opts)
 	opts = opts or {}
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
@@ -147,19 +154,20 @@ M.setup = function(opts)
 		local cmd = cscope .. " find " .. operation
 		if M.opts.skip_input_prompt then
 			cmd = cmd .. " " .. default_symbol
+			run_cscope_command(cmd)
 		else
 			local prompt = sym_map[operation] .. " (default: '" .. default_symbol .. "'): "
 			vim.ui.input({ prompt = prompt }, function(new_symbol)
-				if new_symbol and new_symbol ~= "" then
+				if new_symbol == nil then
+					return
+				end
+				if new_symbol ~= "" then
 					cmd = cmd .. " " .. new_symbol
 				else
 					cmd = cmd .. " " .. default_symbol
 				end
+				run_cscope_command(cmd)
 			end)
-		end
-		vim.api.nvim_command(cmd)
-		if is_supported_version() then
-			vim.api.nvim_command("copen")
 		end
 	end
 

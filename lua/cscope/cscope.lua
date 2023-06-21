@@ -197,7 +197,11 @@ local cscope_cstag = function(symbol)
 			print("cscope: ctags file not found. Create using 'ctags -R'")
 			return RC.DB_NOT_FOUND
 		end
-		vim.api.nvim_command("tag " .. symbol)
+
+		if not pcall(vim.api.nvim_command, "tag " .. symbol) then
+			vim.notify("Vim(tag):E426: tag not found: " .. symbol, vim.log.levels.ERROR)
+			return RC.NO_RESULTS
+		end
 	end
 	return RC.SUCCESS
 end

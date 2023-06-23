@@ -32,6 +32,7 @@ Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.
 - Only want to use Cscope? No worries, keymaps can be disabled using `disable_maps` option.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 - `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
+- `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
 
 ## Features
 * Opens results in quickfix, **telescope**, or **fzf-lua**.
@@ -60,6 +61,7 @@ Install the plugin with your preferred package manager.
       picker = "quickfix", -- "telescope", "fzf-lua" or "quickfix"
       skip_picker_for_single_result = false, -- jump directly to position for single result
       db_build_cmd_args = { "-bqkv" }, -- args used for db build (:Cscope build)
+      statusline_indicator = nil, -- statusline indicator, default is "exec"
     }
   },
 }

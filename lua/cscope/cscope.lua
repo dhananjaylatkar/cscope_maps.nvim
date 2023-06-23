@@ -9,6 +9,7 @@ M.opts = {
 	picker = "quickfix",
 	skip_picker_for_single_result = false,
 	db_build_cmd_args = { "-bqkv" },
+	statusline_indicator = nil,
 }
 
 -- operation symbol to number map
@@ -221,6 +222,7 @@ local cscope_build = function()
 	end
 
 	local handle = nil
+	vim.g.cscope_maps_statusline_indicator = M.opts.statusline_indicator or M.opts.exec
 	handle = vim.loop.spawn(
 		M.opts.exec,
 		{
@@ -238,6 +240,7 @@ local cscope_build = function()
 			else
 				log.warn("database build failed")
 			end
+			vim.g.cscope_maps_statusline_indicator = ""
 		end)
 	)
 	vim.loop.read_start(stdout, cscope_build_output)

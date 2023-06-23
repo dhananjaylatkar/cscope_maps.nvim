@@ -1,4 +1,4 @@
-local util = require("util")
+local helper = require("utils.maps_helper")
 local M = {}
 
 -- Configurable options
@@ -14,9 +14,9 @@ M.setup = function(opts)
 
 	local cscope = "Cscope"
 
-	if util.is_inbuilt_cscope() then
+	if helper.is_inbuilt_cscope() then
 		if vim.loop.fs_stat(M.opts.cscope.db_file) ~= nil then
-			util.init_inbuilt_cscope()
+			helper.init_inbuilt_cscope()
 		end
 		cscope = "cscope"
 	else
@@ -29,9 +29,9 @@ M.setup = function(opts)
 		local cmd = cscope .. " find " .. operation
 		if M.opts.skip_input_prompt then
 			cmd = cmd .. " " .. default_symbol
-			util.run_cscope_command(cmd)
+			helper.run_cscope_command(cmd)
 		else
-			local prompt = util.sym_map[operation] .. " (default: '" .. default_symbol .. "'): "
+			local prompt = helper.sym_map[operation] .. " (default: '" .. default_symbol .. "'): "
 			vim.ui.input({ prompt = prompt }, function(new_symbol)
 				if new_symbol == nil then
 					return
@@ -41,14 +41,14 @@ M.setup = function(opts)
 				else
 					cmd = cmd .. " " .. default_symbol
 				end
-				util.run_cscope_command(cmd)
+				helper.run_cscope_command(cmd)
 			end)
 		end
 	end
 
 	if not M.opts.disable_maps then
 		-- Mappings
-		util.init_keymaps()
+		helper.init_keymaps()
 	end
 end
 

@@ -1,5 +1,6 @@
-local util = require("cscope.util")
-local RC = util.ret_codes
+local RC = require("utils.ret_codes")
+local log = require("utils.log")
+
 local M = {}
 
 M.opts = {
@@ -108,7 +109,7 @@ local cscope_parse_output = function(cs_out)
 	return res
 end
 
-local cscope_find_helper = function(op_n, op_s, symbol)
+local cscope_find_helper = function(op_n, op_s, symbol, hide_log)
 	-- Executes cscope search and shows result in QuickFix List or Telescope
 
 	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
@@ -118,17 +119,17 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 		cmd = cmd .. " " .. "-f " .. db_file
 	elseif cmd == "gtags-cscope" then
 		if op_s == "d" then
-			print("cscope: 'd' operation is not available for " .. M.opts.exec)
+			log.warn("'d' operation is not available for " .. M.opts.exec, hide_log)
 			return RC.INVALID_OP
 		end
 		db_file = "GTAGS" -- This is only used to verify whether db is created or not.
 	else
-		print("cscope: " .. "'" .. cmd .. "' executable is not supported")
+		log.warn("'" .. cmd .. "' executable is not supported", hide_log)
 		return RC.INVALID_EXEC
 	end
 
 	if vim.loop.fs_stat(db_file) == nil then
-		print("cscope: db file not found [" .. db_file .. "]. Create using :Cs build")
+		log.warn("db file not found [" .. db_file .. "]. Create using :Cs build", hide_log)
 		return RC.DB_NOT_FOUND
 	end
 
@@ -140,7 +141,7 @@ local cscope_find_helper = function(op_n, op_s, symbol)
 	file:close()
 
 	if output == "" then
-		print("cscope: no results for 'cscope find " .. op_s .. " " .. symbol .. "'")
+		log.warn("no results for 'cscope find " .. op_s .. " " .. symbol .. "'", hide_log)
 		return RC.NO_RESULTS
 	end
 
@@ -175,7 +176,7 @@ end
 local cscope_find = function(op, symbol)
 	op = tostring(op)
 	if #op ~= 1 then
-		print("cscope: operation '" .. op .. "' is invalid")
+		log.warn("operation '" .. op .. "' is invalid")
 		return RC.INVALID_OP
 	end
 
@@ -184,7 +185,7 @@ local cscope_find = function(op, symbol)
 	elseif string.find("sgdctefia", op) then
 		return cscope_find_helper(M.op_s_n[op], op, symbol)
 	else
-		print("cscope: operation '" .. op .. "' is invalid")
+		log.warn("operation '" .. op .. "' is invalid")
 		return RC.INVALID_OP
 	end
 
@@ -192,26 +193,28 @@ local cscope_find = function(op, symbol)
 end
 
 local cscope_cstag = function(symbol)
-	if cscope_find("g", symbol) ~= RC.SUCCESS then
+	local op = "g"
+	if cscope_find_helper(M.op_s_n[op], op, symbol, true) ~= RC.SUCCESS then
 		if vim.loop.fs_stat("./tags") == nil then
-			print("cscope: ctags file not found. Create using 'ctags -R'")
+			log.warn("ctags file not found. Create using 'ctags -R'")
 			return RC.DB_NOT_FOUND
 		end
 
+		-- log.info("trying tags...")
 		if not pcall(vim.api.nvim_command, "tag " .. symbol) then
-			vim.notify("Vim(tag):E426: tag not found: " .. symbol, vim.log.levels.ERROR)
+			log.warn("Vim(tag):E426: tag not found: " .. symbol)
 			return RC.NO_RESULTS
 		end
 	end
 	return RC.SUCCESS
 end
 
-local function cscope_build_onread(err, data)
+local function cscope_build_output(err, data)
 	if err then
-		print("cscope: [build] err: ", err)
+		print("cscope: [build] err: " .. err)
 	end
 	if data then
-		print("cscope: [build] out: ", data)
+		print("cscope: [build] out: " .. data)
 	end
 end
 
@@ -239,14 +242,14 @@ local cscope_build = function()
 			stderr:close()
 			handle:close()
 			if code == 0 then
-				print("cscope: database built successfully")
+				log.info("database built successfully")
 			else
-				print("cscope: database build failed")
+				log.warn("database build failed")
 			end
 		end)
 	)
-	vim.loop.read_start(stdout, cscope_build_onread)
-	vim.loop.read_start(stderr, cscope_build_onread)
+	vim.loop.read_start(stdout, cscope_build_output)
+	vim.loop.read_start(stderr, cscope_build_output)
 end
 
 local cscope = function(cmd, op, symbol)
@@ -258,7 +261,7 @@ local cscope = function(cmd, op, symbol)
 	elseif cmd == "help" or cmd == nil then
 		cscope_help()
 	else
-		print("cscope: command '" .. cmd .. "' is invalid")
+		log.warn("cscope: command '" .. cmd .. "' is invalid")
 	end
 end
 

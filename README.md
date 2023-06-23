@@ -12,6 +12,7 @@ Only supports [neovim](https://neovim.io/). Heavily inspired by emacs' [xcscope.
   * [lazy.nvim](#lazynvim)
   * [packer](#packer)
   * [vim-plug](#vim-plug)
+* [Configuration](#configuration)
 * [vim-gutentags](#vim-gutentags)
   * [Config for vim-gutentags](#config-for-vim-gutentags)
 * [Keymaps](#keymaps)
@@ -53,16 +54,8 @@ Install the plugin with your preferred package manager.
     "nvim-tree/nvim-web-devicons", -- optional [for devicons in telescope or fzf]
   },
   opts = {
-    disable_maps = false, -- "true" disables default keymaps
-    skip_input_prompt = false, -- "true" doesn't ask for input
-    cscope = {
-      db_file = "./cscope.out", -- location of cscope db file
-      exec = "cscope", -- "cscope" or "gtags-cscope"
-      picker = "quickfix", -- "telescope", "fzf-lua" or "quickfix"
-      skip_picker_for_single_result = false, -- jump directly to position for single result
-      db_build_cmd_args = { "-bqkv" }, -- args used for db build (:Cscope build)
-      statusline_indicator = nil, -- statusline indicator, default is "exec"
-    }
+    -- USE EMPTY FOR DEFAULT OPTIONS
+    -- DEFAULTS ARE LISTED BELOW
   },
 }
 ```
@@ -89,6 +82,33 @@ Plug 'nvim-tree/nvim-web-devicons' " optional [for devicons in telescope or fzf]
 lua << EOF
   require("cscope_maps").setup()
 EOF
+```
+
+## Configuration
+
+*cscope_maps* comes with following defaults:
+```lua
+{
+  -- maps related defaults
+  disable_maps = false, -- "true" disables default keymaps
+  skip_input_prompt = false, -- "true" doesn't ask for input
+
+  -- cscope related defaults
+  cscope = {
+    -- location of cscope db file
+    db_file = "./cscope.out",
+    -- cscope executable
+    exec = "cscope", -- "cscope" or "gtags-cscope"
+    -- choose your fav picker
+    picker = "quickfix", -- "telescope", "fzf-lua" or "quickfix"
+    -- "true" does not open picker for single result, just JUMP
+    skip_picker_for_single_result = false, -- "false" or "true"
+    -- these args are directly passed to "cscope -f <db_file> <args>"
+    db_build_cmd_args = { "-bqkv" },
+    -- statusline indicator, default is cscope executable
+    statusline_indicator = nil,
+  }
+}
 ```
 
 ## vim-gutentags

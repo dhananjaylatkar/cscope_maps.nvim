@@ -184,7 +184,7 @@ vim.api.nvim_set_keymap(
 ) 
 ```
 
-## Sreenshots
+## Screenshots
 
 ### Asks for input when invoked. (Default input is word/file under cursor)
 

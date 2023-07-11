@@ -188,13 +188,8 @@ end
 local cscope_cstag = function(symbol)
 	local op = "g"
 	if cscope_find_helper(M.op_s_n[op], op, symbol, true) ~= RC.SUCCESS then
-		if vim.loop.fs_stat("./tags") == nil then
-			log.warn("ctags file not found. Create using 'ctags -R'")
-			return RC.DB_NOT_FOUND
-		end
-
 		-- log.info("trying tags...")
-		if not pcall(vim.api.nvim_command, "tag " .. symbol) then
+		if not pcall(vim.cmd.tag, symbol) then
 			log.warn("Vim(tag):E426: tag not found: " .. symbol)
 			return RC.NO_RESULTS
 		end

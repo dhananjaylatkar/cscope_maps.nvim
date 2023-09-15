@@ -245,7 +245,6 @@ local cscope_build = function()
 		else
 			opts_exec = script_path() .. "plat/unix/update_gtags.sh" --unix system
 		end
-		file_list_cmd = file_list_cmd .. " . " .. proj_root
 		table.insert(db_build_cmd_args, "--incremental")
 		table.insert(db_build_cmd_args, getpath(db_file))
 	end

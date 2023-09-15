@@ -9,8 +9,6 @@ M.opts = {
 	exec = "gtags-cscope",
 	picker = "quickfix",
 	skip_picker_for_single_result = false,
-	-- db_build_cmd_args = { "-bqkv" },
-	db_build_cmd_args = { "-vi" },
 	statusline_indicator = nil,
 }
 
@@ -115,7 +113,7 @@ end
 local cscope_find_helper = function(op_n, op_s, symbol, hide_log)
 	-- Executes cscope search and shows result in QuickFix List or Telescope
 
-	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
+	local db_file = (vim.b.gutentags_files ~= nil and vim.b.gutentags_files["cscope_maps"]) or M.opts.db_file
 	local cmd = M.opts.exec
 
 	if cmd == "cscope" then
@@ -208,22 +206,56 @@ local function cscope_build_output(err, data)
 	end
 end
 
+--获取路径
+local function getpath(filename)
+	return filename:match("(.*[/\\])")
+end
+
+local function script_path()
+	local str = debug.getinfo(1, "S").source:sub(2)
+	return str:match("(.*[/\\])") --删除后面的文件，只保留路径
+end
+
 local cscope_build = function()
 	local stdout = vim.loop.new_pipe(false)
 	local stderr = vim.loop.new_pipe(false)
-	local db_build_cmd_args = M.opts.db_build_cmd_args
-	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
-	local opts_exec = M.opts.exec
+	local db_build_cmd_args = {}
+	local db_file = (vim.b.gutentags_files ~= nil and vim.b.gutentags_files["cscope_maps"]) or M.opts.db_file
+	local proj_root = vim.b.gutentags_root or "./"
+	local file_list_cmd = vim.g.gutentags_file_list_command
+	local opts_exec = nil
 
 	if M.opts.exec == "cscope" then
-		opts_exec = "cscope"
+		if not (vim.fn.has("win32") or vim.fn.has("win64")) then
+			opts_exec = script_path() .. "plat/win32/update_scopedb.cmd"
+		else
+			opts_exec = script_path() .. "plat/unix/update_scopedb.sh" --unix system
+		end
+		table.insert(db_build_cmd_args, "-p")
+		table.insert(db_build_cmd_args, proj_root)
 		table.insert(db_build_cmd_args, "-f")
 		table.insert(db_build_cmd_args, db_file)
+		if vim.g.gutentags_cscope_build_inverted_index_maps ~= nil then
+			table.insert(db_build_cmd_args, "-I")
+		end
 	elseif M.opts.exec == "gtags-cscope" then
-		opts_exec = "gtags"
-		table.insert(db_build_cmd_args, "-f")
-		table.insert(db_build_cmd_args, db_file)
+		--lua中0为true
+		if not (vim.fn.has("win32") or vim.fn.has("win64")) then
+			opts_exec = script_path() .. "plat/win32/update_gtags.cmd"
+		else
+			opts_exec = script_path() .. "plat/unix/update_gtags.sh" --unix system
+		end
+		file_list_cmd = file_list_cmd .. " . " .. proj_root
+		table.insert(db_build_cmd_args, "--incremental")
+		table.insert(db_build_cmd_args, getpath(db_file))
 	end
+	if file_list_cmd ~= nil then
+		table.insert(db_build_cmd_args, "-L")
+		table.insert(db_build_cmd_args, file_list_cmd)
+	end
+	-- log.warn("opt_exec: " .. opts_exec)
+	-- log.warn("proj_root: " .. proj_root)
+	-- log.warn("db_file: " .. db_file)
 
 	-- for k,v in pairs(db_build_cmd_args) do
 	-- 	log.warn("content k: " .. k .. ", v: " .. v)
@@ -304,8 +336,6 @@ M.setup = function(opts)
 	-- This variable can be used by other plugins to change db_file
 	-- e.g. vim-gutentags can use it for when
 	--	vim.g.gutentags_cache_dir is enabled.
-	vim.g.cscope_maps_db_file = nil
-
 	cscope_picker = require("cscope.pickers." .. M.opts.picker)
 
 	cscope_user_command()

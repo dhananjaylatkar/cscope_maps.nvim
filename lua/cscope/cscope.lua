@@ -4,11 +4,13 @@ local log = require("utils.log")
 local M = {}
 
 M.opts = {
-	db_file = "./cscope.out",
-	exec = "cscope",
+	-- db_file = "./cscope.out",
+	db_file = "./GTAGS",
+	exec = "gtags-cscope",
 	picker = "quickfix",
 	skip_picker_for_single_result = false,
-	db_build_cmd_args = { "-bqkv" },
+	-- db_build_cmd_args = { "-bqkv" },
+	db_build_cmd_args = { "-vi" },
 	statusline_indicator = nil,
 }
 
@@ -123,7 +125,7 @@ local cscope_find_helper = function(op_n, op_s, symbol, hide_log)
 			log.warn("'d' operation is not available for " .. M.opts.exec, hide_log)
 			return RC.INVALID_OP
 		end
-		db_file = "GTAGS" -- This is only used to verify whether db is created or not.
+		-- db_file = "GTAGS" -- This is only used to verify whether db is created or not.
 	else
 		log.warn("'" .. cmd .. "' executable is not supported", hide_log)
 		return RC.INVALID_EXEC
@@ -210,16 +212,27 @@ local cscope_build = function()
 	local stdout = vim.loop.new_pipe(false)
 	local stderr = vim.loop.new_pipe(false)
 	local db_build_cmd_args = M.opts.db_build_cmd_args
+	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
+	local opts_exec = M.opts.exec
 
 	if M.opts.exec == "cscope" then
+		opts_exec = "cscope"
 		table.insert(db_build_cmd_args, "-f")
-		table.insert(db_build_cmd_args, M.opts.db_file)
+		table.insert(db_build_cmd_args, db_file)
+	elseif M.opts.exec == "gtags-cscope" then
+		opts_exec = "gtags"
+		table.insert(db_build_cmd_args, "-f")
+		table.insert(db_build_cmd_args, db_file)
 	end
 
+	-- for k,v in pairs(db_build_cmd_args) do
+	-- 	log.warn("content k: " .. k .. ", v: " .. v)
+	-- end;
+
 	local handle = nil
-	vim.g.cscope_maps_statusline_indicator = M.opts.statusline_indicator or M.opts.exec
+	vim.g.cscope_maps_statusline_indicator = M.opts.statusline_indicator or opts_exec
 	handle = vim.loop.spawn(
-		M.opts.exec,
+		opts_exec,
 		{
 			args = db_build_cmd_args,
 			stdio = { nil, stdout, stderr },

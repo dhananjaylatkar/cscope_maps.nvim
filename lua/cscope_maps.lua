@@ -21,7 +21,7 @@ M.setup = function(opts)
 		cscope = "cscope"
 	else
 		-- Use cscope lua port
-		require("cscope.cscope").setup(M.opts.cscope)
+		require("cscope").setup(M.opts.cscope)
 	end
 
 	-- function to print xcscpoe.el like prompts

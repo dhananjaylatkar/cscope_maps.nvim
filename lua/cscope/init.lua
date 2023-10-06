@@ -186,6 +186,10 @@ local cscope_find = function(op, symbol)
 end
 
 local cscope_cstag = function(symbol)
+	if symbol == nil then
+		return RC.INVALID_SYMBOL
+	end
+
 	local op = "g"
 	if cscope_find_helper(M.op_s_n[op], op, symbol, true) ~= RC.SUCCESS then
 		-- log.info("trying tags...")
@@ -243,6 +247,10 @@ local cscope_build = function()
 end
 
 local cscope = function(cmd, op, symbol)
+	if symbol == nil then
+		return
+	end
+
 	-- Parse top level output and call appropriate functions
 	if cmd == "find" then
 		cscope_find(op, symbol)

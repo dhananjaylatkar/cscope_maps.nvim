@@ -4,4 +4,5 @@ return {
 	INVALID_EXEC = 2,
 	DB_NOT_FOUND = 3,
 	NO_RESULTS = 4,
+	INVALID_SYMBOL = 5,
 }

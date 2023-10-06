@@ -247,12 +247,11 @@ local cscope_build = function()
 end
 
 local cscope = function(cmd, op, symbol)
-	if symbol == nil then
-		return
-	end
-
 	-- Parse top level output and call appropriate functions
 	if cmd == "find" then
+		if symbol == nil then
+			return
+		end
 		cscope_find(op, symbol)
 	elseif cmd == "build" then
 		cscope_build()

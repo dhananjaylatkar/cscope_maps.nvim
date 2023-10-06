@@ -167,6 +167,10 @@ local cscope_find_helper = function(op_n, op_s, symbol, hide_log)
 end
 
 local cscope_find = function(op, symbol)
+	if symbol == nil then
+		return RC.INVALID_SYMBOL
+	end
+
 	op = tostring(op)
 	if #op ~= 1 then
 		log.warn("operation '" .. op .. "' is invalid")
@@ -181,8 +185,6 @@ local cscope_find = function(op, symbol)
 		log.warn("operation '" .. op .. "' is invalid")
 		return RC.INVALID_OP
 	end
-
-	return RC.SUCCESS
 end
 
 local cscope_cstag = function(symbol)
@@ -249,9 +251,6 @@ end
 local cscope = function(cmd, op, symbol)
 	-- Parse top level output and call appropriate functions
 	if cmd == "find" then
-		if symbol == nil then
-			return
-		end
 		cscope_find(op, symbol)
 	elseif cmd == "build" then
 		cscope_build()

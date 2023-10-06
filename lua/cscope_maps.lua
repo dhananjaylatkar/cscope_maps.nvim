@@ -5,6 +5,7 @@ local M = {}
 M.opts = {
 	disable_maps = false, -- "true" disables default keymaps
 	skip_input_prompt = false, -- "true" doesn't ask for input
+	prefix = "<leader>c", -- prefix to trigger maps
 	cscope = {}, -- defaults are in cscope.lua
 }
 
@@ -48,7 +49,7 @@ M.setup = function(opts)
 
 	if not M.opts.disable_maps then
 		-- Mappings
-		helper.init_keymaps()
+		helper.init_keymaps(M.opts.prefix)
 	end
 end
 

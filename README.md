@@ -49,6 +49,7 @@ Install the plugin with your preferred package manager. Following example uses [
   -- maps related defaults
   disable_maps = false, -- "true" disables default keymaps
   skip_input_prompt = false, -- "true" doesn't ask for input
+  prefix = "<leader>c", -- prefix to trigger maps
 
   -- cscope related defaults
   cscope = {
@@ -71,36 +72,39 @@ Install the plugin with your preferred package manager. Following example uses [
 ## vim-gutentags
 ### Config for vim-gutentags
 ```lua
-use({
+{
   "ludovicchabant/vim-gutentags",
-  after = "cscope_maps.nvim",
-  config = function()
+  init = function()
     vim.g.gutentags_modules = {"cscope_maps"} -- This is required. Other config is optional
     vim.g.gutentags_cscope_build_inverted_index_maps = 1
     vim.g.gutentags_cache_dir = vim.fn.expand("~/code/.gutentags")
     vim.g.gutentags_file_list_command = "fd -e c -e h"
     -- vim.g.gutentags_trace = 1
   end,
-})
+}
 ```
 
 ## Keymaps
 
 ### Default Keymaps
 
-| Keymaps               | Description                                         |
-|-----------------------|-----------------------------------------------------|
-| `<leader>cs` | find all references to the token under cursor       |
-| `<leader>cg` | find global definition(s) of the token under cursor |
-| `<leader>cc` | find all calls to the function name under cursor    |
-| `<leader>ct` | find all instances of the text under cursor         |
-| `<leader>ce` | egrep search for the word under cursor              |
-| `<leader>cf` | open the filename under cursor                      |
-| `<leader>ci` | find files that include the filename under cursor   |
-| `<leader>cd` | find functions that function under cursor calls     |
-| `<leader>ca` | find places where this symbol is assigned a value   |
-| `<leader>cb` | build cscope database                               |
-| <kbd>Ctrl-]</kbd>     | do `:Cstag <cword>`                                 |
+`<prefix>` can be configured using `prefix` option. Default value for prefix is `<leader>c`.
+
+(Try setting it to `C-c` 😉)
+
+| Keymaps           | Description                                         |
+|-------------------|-----------------------------------------------------|
+| `<prefix>s`       | find all references to the token under cursor       |
+| `<prefix>g`       | find global definition(s) of the token under cursor |
+| `<prefix>c`       | find all calls to the function name under cursor    |
+| `<prefix>t`       | find all instances of the text under cursor         |
+| `<prefix>e`       | egrep search for the word under cursor              |
+| `<prefix>f`       | open the filename under cursor                      |
+| `<prefix>i`       | find files that include the filename under cursor   |
+| `<prefix>d`       | find functions that function under cursor calls     |
+| `<prefix>a`       | find places where this symbol is assigned a value   |
+| `<prefix>b`       | build cscope database                               |
+| <kbd>Ctrl-]</kbd> | do `:Cstag <cword>`                                 |
 
 ### Custom Keymaps
 

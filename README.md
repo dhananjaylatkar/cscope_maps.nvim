@@ -1,4 +1,5 @@
 # cscope_maps.nvim
+
 For old school code navigation :)
 
 Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
@@ -8,6 +9,7 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 [cscope_maps.nvim.webm](https://github.com/dhananjaylatkar/cscope_maps.nvim/assets/27724944/8b6a392a-c1d3-4ead-ae9b-a50436d52eef)
 
 ## 🌟 Cscope support
+
 - Tries to mimic vim's builtin cscope functionality.
 - Provides user command, `:Cscope` which acts same as good old `:cscope`.
 - No need to add cscope database (`:cscope add <file>`), it is automaticaly picked from current directory or `db_file` option.
@@ -18,14 +20,17 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
   - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
 
 ## Features
-* Opens results in quickfix, **telescope**, or **fzf-lua**.
-* Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints.
-* See [this section](#vim-gutentags) for `vim-gutentags`.
+
+- Opens results in quickfix, **telescope**, or **fzf-lua**.
+- Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints.
+- See [this section](#vim-gutentags) for `vim-gutentags`.
 
 ## Installation
-Install the plugin with your preferred package manager. Following example uses [lazy.nvim](https://github.com/folke/lazy.nvim)
 
-``` lua
+Install the plugin with your preferred package manager.
+Following example uses [lazy.nvim](https://github.com/folke/lazy.nvim)
+
+```lua
 {
   "dhananjaylatkar/cscope_maps.nvim",
   dependencies = {
@@ -43,7 +48,8 @@ Install the plugin with your preferred package manager. Following example uses [
 
 ## Configuration
 
-*cscope_maps* comes with following defaults:
+_cscope_maps_ comes with following defaults:
+
 ```lua
 {
   -- maps related defaults
@@ -70,7 +76,9 @@ Install the plugin with your preferred package manager. Following example uses [
 ```
 
 ## vim-gutentags
+
 ### Config for vim-gutentags
+
 ```lua
 {
   "ludovicchabant/vim-gutentags",
@@ -88,12 +96,13 @@ Install the plugin with your preferred package manager. Following example uses [
 
 ### Default Keymaps
 
-`<prefix>` can be configured using `prefix` option. Default value for prefix is `<leader>c`.
+`<prefix>` can be configured using `prefix` option. Default value for prefix
+is `<leader>c`.
 
 (Try setting it to `C-c` 😉)
 
 | Keymaps           | Description                                         |
-|-------------------|-----------------------------------------------------|
+| ----------------- | --------------------------------------------------- |
 | `<prefix>s`       | find all references to the token under cursor       |
 | `<prefix>g`       | find global definition(s) of the token under cursor |
 | `<prefix>c`       | find all calls to the function name under cursor    |
@@ -114,28 +123,34 @@ There are 2 ways to add keymaps for `Cscope`.
 
 #### Using `cscope_prompt()` function
 
-`cscope_prompt(operation, default_symbol)` is exposed to user. This function provides prompt which asks for input (see screenshots below) before running `:Cscope` command.
+`cscope_prompt(operation, default_symbol)` is exposed to user.
+This function provides prompt which asks for input (see screenshots below)
+before running `:Cscope` command.
 
-e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol under cursor
+e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol
+under cursor
+
 ```lua
-vim.api.nvim_set_keymap(
+vim.keymap.set(
   "n",
   "<C-c><C-g>",
   [[<cmd>lua require('cscope_maps').cscope_prompt('g', vim.fn.expand("<cword>"))<cr>]],
   { noremap = true, silent = true }
-) 
+)
 ```
 
 #### Using `:Cscope` command
 
 Use `vim.api.nvim_set_keymap()` to set keymap for cscope.
 
-e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol under cursor
+e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol
+under cursor
+
 ```lua
-vim.api.nvim_set_keymap(
+vim.keymap.set(
   "n",
   "<C-c><C-g>",
-  [[<cmd>exe "Cscope find g" expand("<cword>"))<cr>]],
+  [[<cmd>exe "Cscope find g" expand("<cword>")<cr>]],
   { noremap = true, silent = true }
-) 
+)
 ```

@@ -217,6 +217,11 @@ local cscope_build = function()
 	local stderr = vim.loop.new_pipe(false)
 	local db_build_cmd_args = M.opts.db_build_cmd_args
 
+	if vim.g.cscope_maps_statusline_indicator then
+		log.warn("db build is already in progress")
+        return
+	end
+
 	if M.opts.exec == "cscope" then
 		table.insert(db_build_cmd_args, "-f")
 		table.insert(db_build_cmd_args, M.opts.db_file)
@@ -241,7 +246,7 @@ local cscope_build = function()
 			else
 				log.warn("database build failed")
 			end
-			vim.g.cscope_maps_statusline_indicator = ""
+			vim.g.cscope_maps_statusline_indicator = nil
 		end)
 	)
 	vim.loop.read_start(stdout, cscope_build_output)
@@ -298,6 +303,7 @@ M.setup = function(opts)
 	-- e.g. vim-gutentags can use it for when
 	--	vim.g.gutentags_cache_dir is enabled.
 	vim.g.cscope_maps_db_file = nil
+	vim.g.cscope_maps_statusline_indicator = nil
 
 	cscope_picker = require("cscope.pickers." .. M.opts.picker)
 

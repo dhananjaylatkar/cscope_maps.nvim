@@ -7,6 +7,8 @@ M.opts = {
 	db_file = "./cscope.out",
 	exec = "cscope",
 	picker = "quickfix",
+	qf_window_size = 5,
+	qf_window_pos = "bottom",
 	skip_picker_for_single_result = false,
 	db_build_cmd_args = { "-bqkv" },
 	statusline_indicator = nil,
@@ -161,6 +163,8 @@ local cscope_find_helper = function(op_n, op_s, symbol, hide_log)
 	picker_opts.cscope = {}
 	picker_opts.cscope.parsed_output = parsed_output
 	picker_opts.cscope.prompt_title = title
+	picker_opts.cscope.qf_window_size = M.opts.qf_window_size
+	picker_opts.cscope.qf_window_pos = M.opts.qf_window_pos
 
 	cscope_picker.run(picker_opts)
 	return RC.SUCCESS

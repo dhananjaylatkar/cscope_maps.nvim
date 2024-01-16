@@ -349,7 +349,6 @@ M.setup = function(opts)
 		if project_root ~= nil then
 			M.opts.db_file = project_root .. "/" .. M.opts.db_file
 			if M.opts.project_rooter.change_cwd then
-				log.info("changed cwd to '" .. project_root .. "'")
 				vim.cmd("cd " .. project_root)
 			end
 		end

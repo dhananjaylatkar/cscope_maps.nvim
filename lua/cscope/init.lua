@@ -12,6 +12,10 @@ M.opts = {
 	skip_picker_for_single_result = false,
 	db_build_cmd_args = { "-bqkv" },
 	statusline_indicator = nil,
+	project_rooter = {
+		enable = false,
+		change_cwd = false,
+	},
 }
 
 -- operation symbol to number map
@@ -34,6 +38,7 @@ for k, v in pairs(M.op_s_n) do
 end
 
 local cscope_picker = nil
+local project_root = nil
 
 local cscope_help = function()
 	print([[
@@ -77,23 +82,29 @@ local cscope_parse_line = function(line)
 
 	-- Populate t with filename, context and linenumber
 	local sp = vim.split(line, "%s+")
-	t["filename"] = sp[1]
-	t["ctx"] = sp[2]
-	t["lnum"] = sp[3]
+
+	t.filename = sp[1]
+	-- update path if project_rooter is enabled
+	if M.opts.project_rooter.enable and not M.opts.project_rooter.change_cwd and project_root ~= nil then
+		t.filename = project_root .. "/" .. t.filename
+	end
+
+	t.ctx = sp[2]
+	t.lnum = sp[3]
 	local sz = #sp[1] + #sp[2] + #sp[3] + 3
 
 	-- Populate t["text"] with search result
-	t["text"] = string.sub(line, sz, -1)
+	t.text = string.sub(line, sz, -1)
 
 	-- Enclose context with << >>
-	if string.sub(t["ctx"], 1, 1) == "<" then
-		t["ctx"] = "<" .. t["ctx"] .. ">"
+	if string.sub(t.ctx, 1, 1) == "<" then
+		t.ctx = "<" .. t.ctx .. ">"
 	else
-		t["ctx"] = "<<" .. t["ctx"] .. ">>"
+		t.ctx = "<<" .. t.ctx .. ">>"
 	end
 
 	-- Add context to text
-	t["text"] = t["ctx"] .. t["text"]
+	t.text = t.ctx .. t.text
 
 	return t
 end
@@ -219,16 +230,21 @@ end
 local cscope_build = function()
 	local stdout = vim.loop.new_pipe(false)
 	local stderr = vim.loop.new_pipe(false)
-	local db_build_cmd_args = M.opts.db_build_cmd_args
+	local db_build_cmd_args = vim.tbl_deep_extend("force", M.opts.db_build_cmd_args, {})
+	local cur_path = vim.fn.expand("%:p:h", true)
 
 	if vim.g.cscope_maps_statusline_indicator then
 		log.warn("db build is already in progress")
-        return
+		return
 	end
 
 	if M.opts.exec == "cscope" then
 		table.insert(db_build_cmd_args, "-f")
 		table.insert(db_build_cmd_args, M.opts.db_file)
+	end
+
+	if M.opts.project_rooter.enable and not M.opts.project_rooter.change_cwd and project_root ~= nil then
+		vim.cmd("cd " .. project_root)
 	end
 
 	local handle = nil
@@ -251,6 +267,9 @@ local cscope_build = function()
 				log.warn("database build failed")
 			end
 			vim.g.cscope_maps_statusline_indicator = nil
+			if M.opts.project_rooter.enable and not M.opts.project_rooter.change_cwd and project_root ~= nil then
+				vim.cmd("cd " .. cur_path)
+			end
 		end)
 	)
 	vim.loop.read_start(stdout, cscope_build_output)
@@ -301,6 +320,22 @@ local cscope_user_command = function()
 	})
 end
 
+local cscope_project_root = function()
+	local path = vim.fn.expand("%:p:h", true)
+	while true do
+		if path == "" then
+			path = "/"
+		end
+		if vim.loop.fs_stat(path .. "/" .. M.opts.db_file) ~= nil then
+			return path
+		end
+		if path == "/" then
+			return nil
+		end
+		path = path:match("^(.*)/")
+	end
+end
+
 M.setup = function(opts)
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
 	-- This variable can be used by other plugins to change db_file
@@ -308,6 +343,17 @@ M.setup = function(opts)
 	--	vim.g.gutentags_cache_dir is enabled.
 	vim.g.cscope_maps_db_file = nil
 	vim.g.cscope_maps_statusline_indicator = nil
+
+	if M.opts.project_rooter.enable then
+		project_root = cscope_project_root()
+		if project_root ~= nil then
+			M.opts.db_file = project_root .. "/" .. M.opts.db_file
+			if M.opts.project_rooter.change_cwd then
+				log.info("changed cwd to '" .. project_root .. "'")
+				vim.cmd("cd " .. project_root)
+			end
+		end
+	end
 
 	cscope_picker = require("cscope.pickers." .. M.opts.picker)
 

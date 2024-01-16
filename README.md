@@ -75,6 +75,12 @@ _cscope_maps_ comes with following defaults:
     db_build_cmd_args = { "-bqkv" },
     -- statusline indicator, default is cscope executable
     statusline_indicator = nil,
+    -- try to locate db_file in parent dir(s)
+    project_rooter = {
+      enable = false, -- "true" or "false"
+      -- change cwd to where db_file is located
+      change_cwd = false, -- "true" or "false"
+    },
   }
 }
 ```

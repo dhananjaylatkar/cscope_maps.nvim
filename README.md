@@ -48,6 +48,8 @@ Following example uses [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ## Configuration
 
+You must run `require("cscope_maps").setup()` to initialize the plugin even when using default options.
+
 _cscope_maps_ comes with following defaults:
 
 ```lua
@@ -100,6 +102,23 @@ _cscope_maps_ comes with following defaults:
     -- vim.g.gutentags_trace = 1
   end,
 }
+```
+
+### Alternative to vim-gutentags
+
+Alternative to gutentags is to rebuild DB using `:Cscope build` or `<prefix>b`.
+
+You can create autocmd for running `:Cscope build` after saving .c and .h files.
+e.g
+```lua
+local group = vim.api.nvim_create_augroup("CscopeBuild", { clear = true })
+vim.api.nvim_create_autocmd("BufWritePost", {
+  pattern = { "*.c", "*.h" },
+  callback = function ()
+    vim.cmd("Cscope build")
+  end,
+  group = group,
+})
 ```
 
 ## Keymaps

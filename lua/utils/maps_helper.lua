@@ -32,7 +32,7 @@ end
 -- define key table for input strings
 M.sym_map = {
 	s = "Find this symbol",
-	g = "Find this global defination",
+	g = "Find this global definition",
 	c = "Find functions calling this function",
 	t = "Find this text string",
 	e = "Find this egrep pattern",

@@ -12,6 +12,7 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
 - Tries to mimic vim's builtin cscope functionality.
 - Provides user command, `:Cscope` which acts same as good old `:cscope`.
+- Short commands are supported. e.g. `:Cs f g main`
 - No need to add cscope database (`:cscope add <file>`), it is automaticaly picked from current directory or `db_file` option.
 - Only want to use Cscope? No worries, keymaps can be disabled using `disable_maps` option.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
@@ -110,6 +111,7 @@ Alternative to gutentags is to rebuild DB using `:Cscope build` or `<prefix>b`.
 
 You can create autocmd for running `:Cscope build` after saving .c and .h files.
 e.g
+
 ```lua
 local group = vim.api.nvim_create_augroup("CscopeBuild", { clear = true })
 vim.api.nvim_create_autocmd("BufWritePost", {

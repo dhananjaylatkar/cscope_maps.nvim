@@ -276,16 +276,41 @@ local cscope_build = function()
 	vim.loop.read_start(stderr, cscope_build_output)
 end
 
-local cscope = function(cmd, op, symbol)
+local cscope = function(args)
 	-- Parse top level input and call appropriate functions
-	if cmd == nil or cmd:sub(1, 1) == "h" then
-		cscope_help()
-	elseif cmd:sub(1, 1) == "f" then
+	local args_num = #args
+	if args_num < 1 then
+		-- invalid command
+		log.warn("invalid cmd. see :Cscope help")
+		return
+	end
+
+	local cmd = args[1]
+
+	if cmd:sub(1, 1) == "f" then
+		if args_num < 3 then
+			log.warn("find command expects atleast 3 arguments")
+			return
+		end
+
+		local op = args[2]
+		local symbol = args[3]
+
+		-- collect all args
+		for i = 4, args_num do
+			symbol = symbol .. " " .. args[i]
+		end
+
+		-- add escape chars for " ", '"' and "'"
+		symbol = symbol:gsub(" ", "\\ "):gsub('"', '\\"'):gsub("'", "\\'")
+
 		cscope_find(op, symbol)
 	elseif cmd:sub(1, 1) == "b" then
 		cscope_build()
+	elseif cmd:sub(1, 1) == "h" then
+		cscope_help()
 	else
-		log.warn("cscope: command '" .. cmd .. "' is invalid")
+		log.warn("command '" .. cmd .. "' is invalid")
 	end
 end
 
@@ -308,7 +333,7 @@ end
 local cscope_user_command = function()
 	-- Create the :Cscope user command
 	vim.api.nvim_create_user_command("Cscope", function(opts)
-		cscope(unpack(opts.fargs))
+		cscope(opts.fargs)
 	end, {
 		nargs = "*",
 		complete = cscope_cmd_comp,
@@ -316,7 +341,7 @@ local cscope_user_command = function()
 
 	-- Create the :Cs user command
 	vim.api.nvim_create_user_command("Cs", function(opts)
-		cscope(unpack(opts.fargs))
+		cscope(opts.fargs)
 	end, {
 		nargs = "*",
 		complete = cscope_cmd_comp,

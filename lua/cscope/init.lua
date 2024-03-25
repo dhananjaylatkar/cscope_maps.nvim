@@ -62,7 +62,7 @@ local cscope_push_tagstack = function()
 	local from = { vim.fn.bufnr("%"), vim.fn.line("."), vim.fn.col("."), 0 }
 	local items = { { tagname = vim.fn.expand("<cword>"), from = from } }
 	local ts = vim.fn.gettagstack()
-	local ts_last_item = ts.items[ts.length]
+	local ts_last_item = ts.items[ts.curidx - 1]
 
 	if
 		ts_last_item

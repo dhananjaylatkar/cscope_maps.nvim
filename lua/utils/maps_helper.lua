@@ -3,7 +3,7 @@ local map = vim.keymap.set
 
 M.ver = vim.version()
 
-M.init_inbuilt_cscope = function()
+M.init_inbuilt_cscope = function(db_file)
 	-- use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
 	vim.opt.cscopetag = true
 	-- check cscope for definition of a symbol before checking ctags: set to 1
@@ -14,7 +14,7 @@ M.init_inbuilt_cscope = function()
 	-- results in quickfix window
 	vim.opt.cscopequickfix = "s-,g-,c-,t-,e-,f-,i-,d-,a-"
 	-- add cscope database in current directory
-	vim.api.nvim_command("cs add " .. M.opts.cscope.db_file)
+	vim.api.nvim_command("cs add " .. db_file)
 end
 
 M.is_inbuilt_cscope = function()

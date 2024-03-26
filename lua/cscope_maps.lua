@@ -17,7 +17,7 @@ M.setup = function(opts)
 
 	if helper.is_inbuilt_cscope() then
 		if vim.loop.fs_stat(M.opts.cscope.db_file) ~= nil then
-			helper.init_inbuilt_cscope()
+			helper.init_inbuilt_cscope(M.opts.cscope.db_file)
 		end
 		cscope = "cscope"
 	else

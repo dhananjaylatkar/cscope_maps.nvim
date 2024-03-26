@@ -364,10 +364,10 @@ local cscope_project_root = function()
 		if vim.loop.fs_stat(path .. "/" .. M.opts.db_file) ~= nil then
 			return path
 		end
-		if path == "/" then
+		if path:len() <= 2 then
 			return nil
 		end
-		path = path:match("^(.*)/")
+		path = path:match("^(.*)[/\\]")
 	end
 end
 

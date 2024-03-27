@@ -374,6 +374,22 @@ local cscope_project_root = function()
 	end
 end
 
+M.init_inbuilt_cscope = function(opts)
+	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
+
+	-- use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
+	vim.opt.cscopetag = true
+	-- check cscope for definition of a symbol before checking ctags: set to 1
+	-- if you want the reverse search order.
+	vim.opt.csto = 0
+	-- show msg when cscope db added
+	vim.opt.cscopeverbose = true
+	-- results in quickfix window
+	vim.opt.cscopequickfix = "s-,g-,c-,t-,e-,f-,i-,d-,a-"
+	-- add cscope database in current directory
+	vim.api.nvim_command("cs add " .. M.opts.db_file)
+end
+
 M.setup = function(opts)
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
 	-- This variable can be used by other plugins to change db_file

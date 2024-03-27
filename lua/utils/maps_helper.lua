@@ -3,20 +3,6 @@ local map = vim.keymap.set
 
 M.ver = vim.version()
 
-M.init_inbuilt_cscope = function(db_file)
-	-- use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
-	vim.opt.cscopetag = true
-	-- check cscope for definition of a symbol before checking ctags: set to 1
-	-- if you want the reverse search order.
-	vim.opt.csto = 0
-	-- show msg when cscope db added
-	vim.opt.cscopeverbose = true
-	-- results in quickfix window
-	vim.opt.cscopequickfix = "s-,g-,c-,t-,e-,f-,i-,d-,a-"
-	-- add cscope database in current directory
-	vim.api.nvim_command("cs add " .. db_file)
-end
-
 M.is_inbuilt_cscope = function()
 	-- cscope is removed from nvim 0.9+
 	return M.ver.major == 0 and M.ver.minor < 9

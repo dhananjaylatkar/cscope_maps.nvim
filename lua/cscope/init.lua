@@ -62,7 +62,7 @@ local cscope_push_tagstack = function()
 	local from = { vim.fn.bufnr("%"), vim.fn.line("."), vim.fn.col("."), 0 }
 	local items = { { tagname = vim.fn.expand("<cword>"), from = from } }
 	local ts = vim.fn.gettagstack()
-	local ts_last_item = ts.items[ts.length]
+	local ts_last_item = ts.items[ts.curidx - 1]
 
 	if
 		ts_last_item
@@ -364,10 +364,45 @@ local cscope_project_root = function()
 		if vim.loop.fs_stat(path .. "/" .. M.opts.db_file) ~= nil then
 			return path
 		end
-		if path == "/" then
-			return nil
+		if vim.fn.has("win32") then
+			if path:len() <= 2 then
+				return nil
+			end
+			path = path:match("^(.*)[/\\]")
+		else
+			if path == "/" then
+				return nil
+			end
+			path = path:match("^(.*)/")
 		end
-		path = path:match("^(.*)/")
+	end
+end
+
+M.init_inbuilt_cscope = function(opts)
+	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
+
+	-- use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
+	vim.opt.cscopetag = true
+	-- check cscope for definition of a symbol before checking ctags: set to 1
+	-- if you want the reverse search order.
+	vim.opt.csto = 0
+	-- show msg when cscope db added
+	vim.opt.cscopeverbose = true
+	-- results in quickfix window
+	vim.opt.cscopequickfix = "s-,g-,c-,t-,e-,f-,i-,d-,a-"
+
+	if M.opts.project_rooter.enable then
+		project_root = cscope_project_root()
+		if project_root ~= nil then
+			M.opts.db_file = project_root .. "/" .. M.opts.db_file
+			if M.opts.project_rooter.change_cwd then
+				vim.cmd("cd " .. project_root)
+			end
+		end
+	end
+
+	if vim.loop.fs_stat(M.opts.db_file) ~= nil then
+		vim.api.nvim_command("cs add " .. M.opts.db_file)
 	end
 end
 

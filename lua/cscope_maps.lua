@@ -16,9 +16,7 @@ M.setup = function(opts)
 	local cscope = "Cscope"
 
 	if helper.is_inbuilt_cscope() then
-		if vim.loop.fs_stat(M.opts.cscope.db_file) ~= nil then
-			require("cscope").init_inbuilt_cscope(M.opts.cscope)
-		end
+		require("cscope").init_inbuilt_cscope(M.opts.cscope)
 		cscope = "cscope"
 	else
 		-- Use cscope lua port

@@ -386,8 +386,20 @@ M.init_inbuilt_cscope = function(opts)
 	vim.opt.cscopeverbose = true
 	-- results in quickfix window
 	vim.opt.cscopequickfix = "s-,g-,c-,t-,e-,f-,i-,d-,a-"
-	-- add cscope database in current directory
-	vim.api.nvim_command("cs add " .. M.opts.db_file)
+
+	if M.opts.project_rooter.enable then
+		project_root = cscope_project_root()
+		if project_root ~= nil then
+			M.opts.db_file = project_root .. "/" .. M.opts.db_file
+			if M.opts.project_rooter.change_cwd then
+				vim.cmd("cd " .. project_root)
+			end
+		end
+	end
+
+	if vim.loop.fs_stat(M.opts.db_file) ~= nil then
+		vim.api.nvim_command("cs add " .. M.opts.db_file)
+	end
 end
 
 M.setup = function(opts)

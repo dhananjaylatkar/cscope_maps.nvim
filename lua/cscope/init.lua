@@ -364,13 +364,17 @@ local cscope_project_root = function()
 		if vim.loop.fs_stat(path .. "/" .. M.opts.db_file) ~= nil then
 			return path
 		end
-		if path == "/" then
-			return nil
+		if vim.fn.has("win32") then
+			if path:len() <= 2 then
+				return nil
+			end
+			path = path:match("^(.*)[/\\]")
+		else
+			if path == "/" then
+				return nil
+			end
+			path = path:match("^(.*)/")
 		end
-		if vim.fn.has("win32") and path:len() <= 2 then
-			return nil
-		end
-		path = path:match("^(.*)[/\\]")
 	end
 end
 

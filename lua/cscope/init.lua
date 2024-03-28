@@ -1,5 +1,6 @@
 local RC = require("utils.ret_codes")
 local log = require("utils.log")
+local helper = require("utils.helper")
 
 local M = {}
 
@@ -378,9 +379,7 @@ local cscope_project_root = function()
 	end
 end
 
-M.init_inbuilt_cscope = function(opts)
-	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
-
+local cscope_legacy_setup = function()
 	-- use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
 	vim.opt.cscopetag = true
 	-- check cscope for definition of a symbol before checking ctags: set to 1
@@ -390,16 +389,6 @@ M.init_inbuilt_cscope = function(opts)
 	vim.opt.cscopeverbose = true
 	-- results in quickfix window
 	vim.opt.cscopequickfix = "s-,g-,c-,t-,e-,f-,i-,d-,a-"
-
-	if M.opts.project_rooter.enable then
-		project_root = cscope_project_root()
-		if project_root ~= nil then
-			M.opts.db_file = project_root .. "/" .. M.opts.db_file
-			if M.opts.project_rooter.change_cwd then
-				vim.cmd("cd " .. project_root)
-			end
-		end
-	end
 
 	if vim.loop.fs_stat(M.opts.db_file) ~= nil then
 		vim.api.nvim_command("cs add " .. M.opts.db_file)
@@ -424,9 +413,12 @@ M.setup = function(opts)
 		end
 	end
 
-	cscope_picker = require("cscope.pickers." .. M.opts.picker)
-
-	cscope_user_command()
+	if helper.legacy_cscope() then
+		cscope_legacy_setup()
+	else
+		cscope_picker = require("cscope.pickers." .. M.opts.picker)
+		cscope_user_command()
+	end
 end
 
 return M

@@ -19,6 +19,7 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
 - `:Cscope build` builds cscope db (no more going to terminal just to update the db)
   - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
+- For `nvim < 0.9`, legacy cscope will be used. It will support keymaps. It won't have all the niceties of lua port.
 
 ## Features
 

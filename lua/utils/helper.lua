@@ -3,14 +3,15 @@ local map = vim.keymap.set
 
 M.ver = vim.version()
 
-M.is_inbuilt_cscope = function()
+M.legacy_cscope = function()
 	-- cscope is removed from nvim 0.9+
 	return M.ver.major == 0 and M.ver.minor < 9
 end
 
 M.run_cscope_command = function(cmd)
 	vim.api.nvim_command(cmd)
-	if M.is_inbuilt_cscope() then
+	if M.legacy_cscope() then
+		print(cmd)
 		vim.api.nvim_command("copen")
 	end
 end
@@ -61,7 +62,11 @@ M.default_keymaps = function(prefix)
 end
 
 M.init_keymaps = function(prefix)
-	map("n", "<C-]>", [[<cmd>exe "Cstag" expand("<cword>")<cr>]], { noremap = true, silent = true, desc = "ctag" })
+	if not M.legacy_cscope() then
+		map("n", "<C-]>",
+			[[<cmd>exe "Cstag" expand("<cword>")<cr>]],
+			{ noremap = true, silent = true, desc = "ctag" })
+	end
 
 	M.default_keymaps(prefix)
 end

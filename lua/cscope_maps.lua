@@ -1,4 +1,4 @@
-local helper = require("utils.maps_helper")
+local helper = require("utils.helper")
 local M = {}
 
 -- Configurable options
@@ -15,13 +15,11 @@ M.setup = function(opts)
 
 	local cscope = "Cscope"
 
-	if helper.is_inbuilt_cscope() then
-		require("cscope").init_inbuilt_cscope(M.opts.cscope)
+	if helper.legacy_cscope() then
 		cscope = "cscope"
-	else
-		-- Use cscope lua port
-		require("cscope").setup(M.opts.cscope)
 	end
+
+	require("cscope").setup(M.opts.cscope)
 
 	-- function to print xcscpoe.el like prompts
 	M.cscope_prompt = function(operation, default_symbol)

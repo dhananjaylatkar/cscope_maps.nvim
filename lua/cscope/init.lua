@@ -124,43 +124,7 @@ local cscope_parse_output = function(cs_out)
 	return res
 end
 
-local cscope_find_helper = function(op_n, op_s, symbol, hide_log)
-	-- Executes cscope search and shows result in QuickFix List or Telescope
-
-	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
-	local cmd = M.opts.exec
-
-	if cmd == "cscope" then
-		cmd = cmd .. " " .. "-f " .. db_file
-	elseif cmd == "gtags-cscope" then
-		if op_s == "d" then
-			log.warn("'d' operation is not available for " .. M.opts.exec, hide_log)
-			return RC.INVALID_OP
-		end
-		db_file = "GTAGS" -- This is only used to verify whether db is created or not.
-	else
-		log.warn("'" .. cmd .. "' executable is not supported", hide_log)
-		return RC.INVALID_EXEC
-	end
-
-	if vim.loop.fs_stat(db_file) == nil then
-		log.warn("db file not found [" .. db_file .. "]. Create using :Cs build", hide_log)
-		return RC.DB_NOT_FOUND
-	end
-
-	cmd = cmd .. " -dL" .. " -" .. op_n .. " " .. symbol
-
-	local file = assert(io.popen(cmd, "r"))
-	file:flush()
-	local output = file:read("*all")
-	file:close()
-
-	if output == "" then
-		log.warn("no results for 'cscope find " .. op_s .. " " .. symbol .. "'", hide_log)
-		return RC.NO_RESULTS
-	end
-
-	local parsed_output = cscope_parse_output(output)
+local cscope_open_picker = function(op_s, symbol, parsed_output)
 	local title = "cscope find " .. op_s .. " " .. symbol
 
 	-- Push current symbol on tagstack
@@ -182,25 +146,72 @@ local cscope_find_helper = function(op_n, op_s, symbol, hide_log)
 	return RC.SUCCESS
 end
 
+M.cscope_get_result = function(op_n, op_s, symbol, hide_log)
+	-- Executes cscope search and shows result in QuickFix List or Telescope
+
+	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
+	local cmd = M.opts.exec
+
+	if cmd == "cscope" then
+		cmd = cmd .. " " .. "-f " .. db_file
+	elseif cmd == "gtags-cscope" then
+		if op_s == "d" then
+			log.warn("'d' operation is not available for " .. M.opts.exec, hide_log)
+			return RC.INVALID_OP, nil
+		end
+		db_file = "GTAGS" -- This is only used to verify whether db is created or not.
+	else
+		log.warn("'" .. cmd .. "' executable is not supported", hide_log)
+		return RC.INVALID_EXEC, nil
+	end
+
+	if vim.loop.fs_stat(db_file) == nil then
+		log.warn("db file not found [" .. db_file .. "]. Create using :Cs build", hide_log)
+		return RC.DB_NOT_FOUND, nil
+	end
+
+	cmd = cmd .. " -dL" .. " -" .. op_n .. " " .. symbol
+
+	local file = assert(io.popen(cmd, "r"))
+	file:flush()
+	local output = file:read("*all")
+	file:close()
+
+	if output == "" then
+		log.warn("no results for 'cscope find " .. op_s .. " " .. symbol .. "'", hide_log)
+		return RC.NO_RESULTS, nil
+	end
+
+	return RC.SUCCESS, cscope_parse_output(output)
+end
+
 local cscope_find = function(op, symbol)
 	if symbol == nil then
 		return RC.INVALID_SYMBOL
 	end
 
+	local ok, res
 	op = tostring(op)
+
 	if #op ~= 1 then
 		log.warn("operation '" .. op .. "' is invalid")
 		return RC.INVALID_OP
 	end
 
 	if string.find("012346789", op) then
-		return cscope_find_helper(op, M.op_n_s[op], symbol)
+		ok, res = M.cscope_get_result(op, M.op_n_s[op], symbol)
 	elseif string.find("sgdctefia", op) then
-		return cscope_find_helper(M.op_s_n[op], op, symbol)
+		ok, res = M.cscope_get_result(M.op_s_n[op], op, symbol)
 	else
 		log.warn("operation '" .. op .. "' is invalid")
 		return RC.INVALID_OP
 	end
+
+	if ok == RC.SUCCESS then
+		return cscope_open_picker(op, symbol, res)
+	end
+
+	return RC.NO_RESULTS
 end
 
 local cscope_cstag = function(symbol)
@@ -209,14 +220,16 @@ local cscope_cstag = function(symbol)
 	end
 
 	local op = "g"
-	if cscope_find_helper(M.op_s_n[op], op, symbol, true) ~= RC.SUCCESS then
+	local ok, res = M.cscope_get_result(M.op_s_n[op], op, symbol, true)
+	if ok == RC.SUCCESS then
+		return cscope_open_picker(op, symbol, res)
+	else
 		-- log.info("trying tags...")
 		if not pcall(vim.cmd.tag, symbol) then
 			log.warn("Vim(tag):E426: tag not found: " .. symbol)
 			return RC.NO_RESULTS
 		end
 	end
-	return RC.SUCCESS
 end
 
 local function cscope_build_output(err, data)

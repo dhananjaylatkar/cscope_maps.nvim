@@ -17,8 +17,10 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - Only want to use Cscope? No worries, keymaps can be disabled using `disable_maps` option.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 - `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
-- `:Cscope build` builds cscope db (no more going to terminal just to update the db)
+- `:Cscope db build` builds cscope db (no more going to terminal just to update the db)
   - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
+- `:Cscope db add <space sepatated files>` add db file(s) to cscope search
+- `:Cscope db rm <space sepatated files>` remove db file(s) from cscope search
 - For `nvim < 0.9`, legacy cscope will be used. It will support keymaps. It won't have all the niceties of lua port.
 
 ## Features
@@ -113,9 +115,9 @@ _cscope_maps_ comes with following defaults:
 
 ### Alternative to vim-gutentags
 
-Alternative to gutentags is to rebuild DB using `:Cscope build` or `<prefix>b`.
+Alternative to gutentags is to rebuild DB using `:Cscope db build` or `<prefix>b`.
 
-You can create autocmd for running `:Cscope build` after saving .c and .h files.
+You can create autocmd for running `:Cscope db build` after saving .c and .h files.
 e.g
 
 ```lua
@@ -123,7 +125,7 @@ local group = vim.api.nvim_create_augroup("CscopeBuild", { clear = true })
 vim.api.nvim_create_autocmd("BufWritePost", {
   pattern = { "*.c", "*.h" },
   callback = function ()
-    vim.cmd("Cscope build")
+    vim.cmd("Cscope db build")
   end,
   group = group,
 })

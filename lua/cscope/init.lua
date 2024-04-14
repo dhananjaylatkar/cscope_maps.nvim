@@ -54,7 +54,12 @@ find : Query for a pattern            (Usage: find a|c|d|e|f|g|i|s|t name)
        i: Find files #including this file
        s: Find this C symbol
        t: Find this text string
-build: Build cscope database          (Usage: build)
+
+db   : DB related queries             (Usage: db build|add <files>|rm <files>)
+       build : Build cscope database
+       add   : Add db file(s)
+       rm    : remove db file(s)
+
 help : Show this message              (Usage: help)
 ]])
 end
@@ -258,7 +263,7 @@ local cscope_cstag = function(symbol)
 	end
 end
 
-local function cscope_build_output(err, data)
+local function cscope_db_build_output(err, data)
 	if err then
 		print("cscope: [build] err: " .. err)
 	end
@@ -267,7 +272,7 @@ local function cscope_build_output(err, data)
 	end
 end
 
-local cscope_build = function()
+local cscope_db_build = function()
 	local stdout = vim.loop.new_pipe(false)
 	local stderr = vim.loop.new_pipe(false)
 	local db_build_cmd_args = vim.tbl_deep_extend("force", M.opts.db_build_cmd_args, {})
@@ -313,10 +318,36 @@ local cscope_build = function()
 			end
 		end)
 	)
-	vim.loop.read_start(stdout, cscope_build_output)
-	vim.loop.read_start(stderr, cscope_build_output)
+	vim.loop.read_start(stdout, cscope_db_build_output)
+	vim.loop.read_start(stderr, cscope_db_build_output)
 end
 
+local cscope_db_update = function(op, files)
+	if type(M.opts.db_file) == "string" then
+		M.opts.db_file = { M.opts.db_file }
+	end
+
+	if op == "a" then
+		for _, f in ipairs(files) do
+			if not vim.tbl_contains(M.opts.db_file, f) then
+				table.insert(M.opts.db_file, f)
+			end
+		end
+	elseif op == "r" then
+		local rm_keys = {}
+		for i, db in ipairs(M.opts.db_file) do
+			if vim.tbl_contains(files, db) then
+				table.insert(rm_keys, 1, i)
+			end
+		end
+		for _, v in ipairs(rm_keys) do
+			if v ~= 1 then
+				table.remove(M.opts.db_file, v)
+			end
+		end
+	end
+	log.warn("updateed DB list: " .. vim.inspect(M.opts.db_file))
+end
 local cscope = function(args)
 	-- Parse top level input and call appropriate functions
 	local args_num = #args
@@ -347,7 +378,27 @@ local cscope = function(args)
 
 		cscope_find(op, symbol)
 	elseif cmd:sub(1, 1) == "b" then
-		cscope_build()
+		log.warn("':Cs build' is deprecated. Use ':Cs db build'")
+	elseif cmd:sub(1, 1) == "d" then
+		if args_num < 2 then
+			log.warn("db command expects atleast 2 arguments")
+			return
+		end
+
+		local op = args[2]:sub(1, 1)
+		if op == "b" then
+			cscope_db_build()
+		elseif op == "a" or op == "r" then
+			-- collect all args
+			local files = {}
+			for i = 3, args_num do
+				table.insert(files, args[i])
+			end
+
+			cscope_db_update(op, files)
+		else
+			log.warn("invalid operation")
+		end
 	elseif cmd:sub(1, 1) == "h" then
 		cscope_help()
 	else
@@ -356,7 +407,7 @@ local cscope = function(args)
 end
 
 local cscope_cmd_comp = function(_, line)
-	local cmds = { "find", "build", "help" }
+	local cmds = { "find", "db", "help" }
 	local l = vim.split(line, "%s+")
 	local n = #l - 2
 
@@ -366,8 +417,15 @@ local cscope_cmd_comp = function(_, line)
 		end, cmds)
 	end
 
-	if n == 1 and l[2] == "find" then
-		return vim.tbl_keys(M.op_s_n)
+	local short_cmd = l[2]:sub(1,1)
+	if n == 1 then
+		if short_cmd == "f" then
+			return vim.tbl_keys(M.op_s_n)
+		end
+
+		if short_cmd == "d" then
+			return {"build", "add", "rm"}
+		end
 	end
 end
 

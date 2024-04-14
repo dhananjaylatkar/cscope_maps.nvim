@@ -58,7 +58,7 @@ M.default_keymaps = function(prefix)
 	map("n", prefix .. "i", M.get_cscope_prompt_cmd("i", "f"), { desc = sym_map.i })
 	map("n", prefix .. "d", M.get_cscope_prompt_cmd("d", "w"), { desc = sym_map.d })
 	map("n", prefix .. "a", M.get_cscope_prompt_cmd("a", "w"), { desc = sym_map.a })
-	map("n", prefix .. "b", "<cmd>Cscope build<cr>", { desc = sym_map.b })
+	map("n", prefix .. "b", "<cmd>Cscope db build<cr>", { desc = sym_map.b })
 end
 
 M.init_keymaps = function(prefix)

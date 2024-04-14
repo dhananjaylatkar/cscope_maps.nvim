@@ -64,7 +64,12 @@ _cscope_maps_ comes with following defaults:
   -- cscope related defaults
   cscope = {
     -- location of cscope db file
-    db_file = "./cscope.out",
+    db_file = "./cscope.out", -- DB or table of DBs
+                              -- NOTE:
+                              --   when table of DBs is provided -
+                              --   first DB is "primary" and others are "secondary"
+                              --   primary DB is used for build and project_rooter
+                              --   secondary DBs must be built with absolute paths or paths relative to cwd otherwise JUMP will not work
     -- cscope executable
     exec = "cscope", -- "cscope" or "gtags-cscope"
     -- choose your fav picker

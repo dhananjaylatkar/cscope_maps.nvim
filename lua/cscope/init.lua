@@ -59,6 +59,18 @@ help : Show this message              (Usage: help)
 ]])
 end
 
+--- if opts.db_file is a table then return 1st item
+local cscope_get_db_file = function()
+	local db_file = ""
+
+	if type(M.opts.db_file) == "table" then
+		db_file = M.opts.db_file[1]
+	else
+		db_file = M.opts.db_file
+	end
+
+	return db_file
+end
 local cscope_push_tagstack = function()
 	local from = { vim.fn.bufnr("%"), vim.fn.line("."), vim.fn.col("."), 0 }
 	local items = { { tagname = vim.fn.expand("<cword>"), from = from } }
@@ -146,43 +158,57 @@ local cscope_open_picker = function(op_s, symbol, parsed_output)
 	return RC.SUCCESS
 end
 
-M.cscope_get_result = function(op_n, op_s, symbol, hide_log)
-	-- Executes cscope search and shows result in QuickFix List or Telescope
-
-	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
-	local cmd = M.opts.exec
-
-	if cmd == "cscope" then
-		cmd = cmd .. " " .. "-f " .. db_file
-	elseif cmd == "gtags-cscope" then
-		if op_s == "d" then
-			log.warn("'d' operation is not available for " .. M.opts.exec, hide_log)
-			return RC.INVALID_OP, nil
-		end
-		db_file = "GTAGS" -- This is only used to verify whether db is created or not.
-	else
-		log.warn("'" .. cmd .. "' executable is not supported", hide_log)
-		return RC.INVALID_EXEC, nil
-	end
-
-	if vim.loop.fs_stat(db_file) == nil then
-		log.warn("db file not found [" .. db_file .. "]. Create using :Cs build", hide_log)
-		return RC.DB_NOT_FOUND, nil
-	end
-
-	cmd = cmd .. " -dL" .. " -" .. op_n .. " " .. symbol
-
+local cscope_cmd_exec = function(cmd)
 	local file = assert(io.popen(cmd, "r"))
 	file:flush()
 	local output = file:read("*all")
 	file:close()
+	return output
+end
 
-	if output == "" then
+M.cscope_get_result = function(op_n, op_s, symbol, hide_log)
+	-- Executes cscope search and return parsed output
+
+	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
+	local cmd = string.format("%s -dL -%s %s", M.opts.exec, op_n, symbol)
+	local out = ""
+
+	if M.opts.exec == "cscope" then
+		if type(db_file) == "string" then
+			if vim.loop.fs_stat(db_file) ~= nil then
+				cmd = string.format("%s -f %s", cmd, db_file)
+				out = cscope_cmd_exec(cmd)
+			end
+		else -- table
+			for _, db in ipairs(db_file) do
+				if vim.loop.fs_stat(db) ~= nil then
+					local _cmd = string.format("%s -f %s", cmd, db)
+					out = string.format("%s%s", out, cscope_cmd_exec(_cmd))
+				end
+			end
+		end
+	elseif M.opts.exec == "gtags-cscope" then
+		if vim.loop.fs_stat("GTAGS") == nil then
+			log.warn("GTAGS file not found", hide_log)
+			return RC.DB_NOT_FOUND, nil
+		end
+		if op_s == "d" then
+			log.warn("'d' operation is not available for " .. M.opts.exec, hide_log)
+			return RC.INVALID_OP, nil
+		end
+
+		out = cscope_cmd_exec(cmd)
+	else
+		log.warn("'" .. M.opts.exec .. "' executable is not supported", hide_log)
+		return RC.INVALID_EXEC, nil
+	end
+
+	if out == "" then
 		log.warn("no results for 'cscope find " .. op_s .. " " .. symbol .. "'", hide_log)
 		return RC.NO_RESULTS, nil
 	end
 
-	return RC.SUCCESS, cscope_parse_output(output)
+	return RC.SUCCESS, cscope_parse_output(out)
 end
 
 local cscope_find = function(op, symbol)
@@ -246,6 +272,7 @@ local cscope_build = function()
 	local stderr = vim.loop.new_pipe(false)
 	local db_build_cmd_args = vim.tbl_deep_extend("force", M.opts.db_build_cmd_args, {})
 	local cur_path = vim.fn.expand("%:p:h", true)
+	local db_file = cscope_get_db_file()
 
 	if vim.g.cscope_maps_statusline_indicator then
 		log.warn("db build is already in progress")
@@ -254,7 +281,7 @@ local cscope_build = function()
 
 	if M.opts.exec == "cscope" then
 		table.insert(db_build_cmd_args, "-f")
-		table.insert(db_build_cmd_args, M.opts.db_file)
+		table.insert(db_build_cmd_args, db_file)
 	end
 
 	if M.opts.project_rooter.enable and not M.opts.project_rooter.change_cwd and project_root ~= nil then
@@ -369,13 +396,15 @@ local cscope_user_command = function()
 	})
 end
 
-local cscope_project_root = function()
+--- returns parent dir where db_file is present
+local cscope_project_root = function(db_file)
 	local path = vim.fn.expand("%:p:h", true)
+
 	while true do
 		if path == "" then
 			path = "/"
 		end
-		if vim.loop.fs_stat(path .. "/" .. M.opts.db_file) ~= nil then
+		if vim.loop.fs_stat(path .. "/" .. db_file) ~= nil then
 			return path
 		end
 		if vim.fn.has("win32") then
@@ -403,8 +432,16 @@ local cscope_legacy_setup = function()
 	-- results in quickfix window
 	vim.opt.cscopequickfix = "s-,g-,c-,t-,e-,f-,i-,d-,a-"
 
-	if vim.loop.fs_stat(M.opts.db_file) ~= nil then
-		vim.api.nvim_command("cs add " .. M.opts.db_file)
+	if type(M.opts.db_file) == "table" then
+		for _, db in ipairs(M.opts.db_file) do
+			if vim.loop.fs_stat(db) ~= nil then
+				vim.api.nvim_command("cs add " .. db)
+			end
+		end
+	else -- string
+		if vim.loop.fs_stat(M.opts.db_file) ~= nil then
+			vim.api.nvim_command("cs add " .. M.opts.db_file)
+		end
 	end
 end
 
@@ -417,9 +454,16 @@ M.setup = function(opts)
 	vim.g.cscope_maps_statusline_indicator = nil
 
 	if M.opts.project_rooter.enable then
-		project_root = cscope_project_root()
+		local db_file = cscope_get_db_file()
+		project_root = cscope_project_root(db_file)
 		if project_root ~= nil then
-			M.opts.db_file = project_root .. "/" .. M.opts.db_file
+			local new_db_path = string.format("%s/%s", project_root, db_file)
+			if type(M.opts.db_file) == "string" then
+				M.opts.db_file = new_db_path
+			else -- table
+				M.opts.db_file[1] = new_db_path
+			end
+
 			if M.opts.project_rooter.change_cwd then
 				vim.cmd("cd " .. project_root)
 			end

@@ -28,13 +28,15 @@ local up_indicator = "-> "
 M.get_line_info = function()
 	local lnum = 0
 	local indent = 0
+	local line = ""
 
 	if vim.bo.filetype == ft then
 		lnum = fn.line(".")
 		indent = fn.indent(lnum) + #down_indicator
+		line = fn.getline(".")
 	end
 
-	return lnum, indent
+	return lnum, indent, line
 end
 
 M.down = function(symbol)
@@ -103,14 +105,56 @@ M.update_buf = function(l_start, l_end, lines)
 	M.buf_lock()
 end
 
+local tree = require("cscope.stack_view.tree")
+local root = nil
+
+M.add_to_tree = function(symbol, filename, lnum, children)
+	if root == nil then
+		root = tree.create_node(symbol, filename, lnum)
+		root.children = children
+		return
+	end
+
+	tree.update_children(root, symbol, filename, lnum, children)
+end
+
+M.line_to_data = function(line)
+	line = vim.trim(line)
+	local line_split = vim.split(line, "%s+")
+	local symbol = line_split[2]
+	local filename = ""
+	local lnum = 0
+
+	if #line_split == 3 then
+		local file_loc = vim.split(line_split[3], ":")
+		filename = file_loc[1]:sub(2)
+		lnum = tonumber(file_loc[2]:sub(1, -2), 10)
+	end
+
+	print("line_to_data", symbol, filename, lnum)
+	return symbol, filename, lnum
+end
+
 -- test func for DOWN
 M.run = function(symbol)
-	local res, lnum, indent = M.down(symbol)
+	local res, lnum, indent, line = M.down(symbol)
+
 	if not res then
 		return
 	end
 
+	local psymbol, pfilename, plnum = M.line_to_data(line)
+
+	if vim.bo.filetype ~= ft then
+		-- we are not in CsStackView buff
+		-- so use current filename and linenumber
+		psymbol = symbol
+		plnum = fn.line(".")
+		pfilename = fn.expand("%")
+	end
+
 	local lines = {}
+	local children = {}
 
 	if M.cache.buf == nil then
 		table.insert(lines, symbol)
@@ -126,10 +170,17 @@ M.run = function(symbol)
 			r.lnum
 		)
 		table.insert(lines, item)
+		local node = tree.create_node(r.ctx:gsub("<", ""):gsub(">", ""), r.filename, tonumber(r.lnum, 10))
+		table.insert(children, node)
 	end
 
+	M.add_to_tree(psymbol, pfilename, plnum, children)
+
 	M.update_buf(lnum, lnum, lines)
-	api.nvim_win_set_cursor(0, {lnum+1, indent})
+	if vim.bo.filetype == ft then
+		api.nvim_win_set_cursor(0, { lnum + 1, indent })
+	end
+	print(vim.inspect(root))
 end
 
 return M

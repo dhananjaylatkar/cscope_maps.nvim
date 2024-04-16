@@ -5,4 +5,5 @@ return {
 	DB_NOT_FOUND = 3,
 	NO_RESULTS = 4,
 	INVALID_SYMBOL = 5,
+	NODE_NOT_FOUND = 6,
 }

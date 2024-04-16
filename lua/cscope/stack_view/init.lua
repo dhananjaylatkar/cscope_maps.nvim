@@ -1,5 +1,6 @@
-local RC = require("utils.ret_codes")
 local cs = require("cscope")
+local tree = require("cscope.stack_view.tree")
+local RC = require("utils.ret_codes")
 local M = {}
 
 -- m()
@@ -17,51 +18,36 @@ local M = {}
 -- callers --> DOWN the stack
 -- called  --> UP the stack
 
+M.cache = { buf = nil, win = nil }
+M.dir_map = { down = {indicator = "<- ", cs_func = function (symbol)
+	local _, res = cs.cscope_get_result(cs.op_s_n.c, "c", symbol)
+	return res
+end},
+up = {indicator = "-> ", cs_func = function(symbol)
+	local _, res = cs.cscope_get_result(cs.op_s_n.d, "d", symbol)
+	return res
+end}
+}
+
 local ft = "CsStackView"
 local api = vim.api
 local fn = vim.fn
+local root = nil
+local buf_lines = nil
+local cur_dir = nil
 
--- TODO: move to user config
-local down_indicator = "<- "
-local up_indicator = "-> "
 
-M.get_line_info = function()
-	local lnum = 0
-	local indent = 0
-	local line = ""
-
-	if vim.bo.filetype == ft then
-		lnum = fn.line(".")
-		indent = fn.indent(lnum) + #down_indicator
-		line = fn.getline(".")
-	end
-
-	return lnum, indent, line
+M.buf_lock = function()
+	api.nvim_buf_set_option(M.cache.buf, "readonly", true)
+	api.nvim_buf_set_option(M.cache.buf, "modifiable", false)
 end
 
-M.down = function(symbol)
-	local rc, res = cs.cscope_get_result(cs.op_s_n.c, "c", symbol)
-
-	if rc ~= RC.SUCCESS then
-		return nil, 0
-	end
-
-	return res, M.get_line_info()
+M.buf_unlock = function()
+	api.nvim_buf_set_option(M.cache.buf, "readonly", false)
+	api.nvim_buf_set_option(M.cache.buf, "modifiable", true)
 end
 
-M.up = function(symbol)
-	local rc, res = cs.cscope_get_result(cs.op_s_n.d, "d", symbol)
-
-	if rc ~= RC.SUCCESS then
-		return nil, 0
-	end
-
-	return res, M.get_line_info()
-end
-
-M.cache = { buf = nil, win = nil }
-
-M.create_buf = function()
+M.buf_open = function()
 	local vim_height = vim.o.lines
 	local vim_width = vim.o.columns
 
@@ -71,8 +57,7 @@ M.create_buf = function()
 	local row = vim_height * 0.15
 
 	M.cache.buf = M.cache.buf or api.nvim_create_buf(false, true)
-	M.cache.win = M.cache.win
-		or api.nvim_open_win(M.cache.buf, true, {
+	M.cache.win = M.cache.win or  api.nvim_open_win(M.cache.buf, true, {
 			relative = "editor",
 			title = ft,
 			title_pos = "center",
@@ -87,35 +72,47 @@ M.create_buf = function()
 	api.nvim_buf_set_option(M.cache.buf, "filetype", ft)
 end
 
-M.buf_lock = function()
-	api.nvim_buf_set_option(M.cache.buf, "readonly", true)
-	api.nvim_buf_set_option(M.cache.buf, "modifiable", false)
+M.buf_close = function()
+	if M.cache.buf ~= nil and api.nvim_buf_is_valid(M.cache.buf) then
+		api.nvim_buf_delete(M.cache.buf, { force = true })
+	end
+
+	if M.cache.win ~= nil and api.nvim_win_is_valid(M.cache.win) then
+		api.nvim_win_close(M.cache.win, true)
+	end
+
+	M.cache.buf = nil
+	M.cache.win = nil
 end
 
-M.buf_unlock = function()
-	api.nvim_buf_set_option(M.cache.buf, "readonly", false)
-	api.nvim_buf_set_option(M.cache.buf, "modifiable", true)
-end
-
-M.update_buf = function(l_start, l_end, lines)
-	M.create_buf()
-
-	M.buf_unlock()
-	api.nvim_buf_set_lines(M.cache.buf, l_start, l_end, false, lines)
-	M.buf_lock()
-end
-
-local tree = require("cscope.stack_view.tree")
-local root = nil
-
-M.add_to_tree = function(symbol, filename, lnum, children)
+M.buf_update = function()
 	if root == nil then
-		root = tree.create_node(symbol, filename, lnum)
-		root.children = children
 		return
 	end
 
-	tree.update_children(root, symbol, filename, lnum, children)
+	-- print(vim.inspect(root))
+	buf_lines = {}
+	M.buf_create_lines(root)
+	-- print(vim.inspect(buf_lines))
+	M.buf_open()
+
+	M.buf_unlock()
+	api.nvim_buf_set_lines(M.cache.buf, 0, -1, false, buf_lines)
+	M.buf_lock()
+
+	vim.keymap.set("n", "q", function()
+		M.buf_close()
+	end, { buffer = M.cache.buf, silent = true })
+	vim.keymap.set("n", "<esc>", function()
+		M.buf_close()
+	end, { buffer = M.cache.buf, silent = true })
+
+	local augroup = api.nvim_create_augroup("CscopeMaps", {})
+	api.nvim_create_autocmd({ "BufLeave" }, {
+		group = augroup,
+		buffer = M.cache.buf,
+		callback = M.buf_close
+	})
 end
 
 M.line_to_data = function(line)
@@ -131,56 +128,138 @@ M.line_to_data = function(line)
 		lnum = tonumber(file_loc[2]:sub(1, -2), 10)
 	end
 
-	print("line_to_data", symbol, filename, lnum)
 	return symbol, filename, lnum
 end
 
--- test func for DOWN
-M.run = function(symbol)
-	local res, lnum, indent, line = M.down(symbol)
 
-	if not res then
+M.buf_create_lines = function(node)
+	local item = ""
+	if node.is_root then
+		item = node.data.symbol
+	else
+		item = string.format(
+			"%s%s%s [%s:%s]",
+			string.rep(" ", node.depth * #M.dir_map[cur_dir].indicator),
+			M.dir_map[cur_dir].indicator,
+			node.data.symbol,
+			node.data.filename,
+			node.data.lnum
+		)
+	end
+
+	table.insert(buf_lines, item)
+
+	if not node.children then
 		return
 	end
 
-	local psymbol, pfilename, plnum = M.line_to_data(line)
+	for _, c in ipairs(node.children) do
+		M.buf_create_lines(c)
+	end
+end
 
-	if vim.bo.filetype ~= ft then
-		-- we are not in CsStackView buff
-		-- so use current filename and linenumber
-		psymbol = symbol
-		plnum = fn.line(".")
-		pfilename = fn.expand("%")
+M.update_tree = function(symbol, dir)
+	-- get functions calling given function
+	local _, res = cs.cscope_get_result(cs.op_s_n.c, "c", symbol)
+
+	if not res then
+		return RC.NO_RESULTS
 	end
 
-	local lines = {}
 	local children = {}
+	local psymbol, pfilename, plnum = "", "", 0
 
-	if M.cache.buf == nil then
-		table.insert(lines, symbol)
+	if vim.bo.filetype == ft then
+		psymbol, pfilename, plnum = M.line_to_data(fn.getline("."))
+	else
+		psymbol, pfilename, plnum = symbol, fn.line("."), fn.expand("%")
 	end
 
+	-- update children list
 	for _, r in ipairs(res) do
-		local item = string.format(
-			"%s%s%s [%s:%d]",
-			string.rep(" ", indent or 0),
-			down_indicator,
-			r.ctx:gsub("<", ""):gsub(">", ""),
-			r.filename,
-			r.lnum
-		)
-		table.insert(lines, item)
-		local node = tree.create_node(r.ctx:gsub("<", ""):gsub(">", ""), r.filename, tonumber(r.lnum, 10))
+		local node = tree.create_node(r.ctx:sub(3, -3), r.filename, r.lnum)
 		table.insert(children, node)
 	end
 
-	M.add_to_tree(psymbol, pfilename, plnum, children)
-
-	M.update_buf(lnum, lnum, lines)
-	if vim.bo.filetype == ft then
-		api.nvim_win_set_cursor(0, { lnum + 1, indent })
-	end
-	print(vim.inspect(root))
+	root = tree.update_node(root, psymbol, pfilename, plnum, children)
+	-- print(vim.inspect(root))
 end
+
+M.expand = function()
+	if vim.bo.filetype ~= ft then
+		return
+	end
+
+	if cur_dir == nil then
+		return
+	end
+
+	if root == nil then
+		return
+	end
+
+	local psymbol, pfilename, plnum = M.line_to_data(fn.getline("."))
+	local cs_res = M.dir_map[cur_dir].cs_func(psymbol)
+
+	if not cs_res then
+		return
+	end
+
+
+	-- update children list
+	local children = {}
+	for _, r in ipairs(cs_res) do
+		local node = tree.create_node(r.ctx:sub(3, -3), r.filename, r.lnum)
+		table.insert(children, node)
+	end
+
+	root = tree.update_node(root, psymbol, pfilename, plnum, children)
+	M.buf_update()
+end
+
+M.open = function(dir, symbol)
+	if vim.bo.filetype == ft then
+		return
+	end
+
+	M.buf_close()
+	root = nil
+
+	if not vim.tbl_contains(vim.tbl_keys(M.dir_map), dir) then
+		return
+	end
+
+	local cs_res = M.dir_map[dir].cs_func(symbol)
+
+	if not cs_res then
+		return
+	end
+
+	cur_dir = dir
+
+	-- update children list
+	local children = {}
+	for _, r in ipairs(cs_res) do
+		local node = tree.create_node(r.ctx:sub(3, -3), r.filename, r.lnum)
+		table.insert(children, node)
+	end
+
+	root = tree.create_node(symbol, "", 0)
+	root.children = children
+	root.is_root = true
+
+	M.buf_update()
+end
+
+M.toggle = function()
+	if vim.bo.filetype == ft then
+		M.buf_close()
+		return
+	end
+	M.buf_update()
+end
+
+-- :Cs stack_view toggle
+-- :Cs stack_view open down|up symbol
 
 return M

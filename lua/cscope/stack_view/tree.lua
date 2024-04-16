@@ -1,3 +1,4 @@
+local RC = require("utils.ret_codes")
 local M = {}
 
 --- node = {data: d, children: {n1, n2, n3, ...}}
@@ -6,7 +7,10 @@ M.create_node = function(symbol, filename, lnum)
 	local node = {}
 
 	node.children = nil
+	node.depth = 0
 	node.data = {}
+	node.is_root = false
+
 	node.data.symbol = symbol
 	node.data.filename = filename
 	node.data.lnum = tonumber(lnum, 10)
@@ -15,7 +19,7 @@ M.create_node = function(symbol, filename, lnum)
 end
 
 M.compare_node = function(node, symbol, filename, lnum)
-	return (node.data.symbol == symbol
+	return (node and node.data and node.data.symbol == symbol
 			and node.data.filename == filename
 			and node.data.lnum == lnum)
 end
@@ -39,14 +43,33 @@ M.get_node = function(root, symbol, filename, lnum)
 	end
 end
 
+M.update_children_depth = function(children, depth)
+	for _, c in ipairs(children) do
+		c.depth = depth
+	end
+end
+
 M.update_children = function(root, symbol, filename, lnum, children)
 	local node = M.get_node(root, symbol, filename, lnum)
 
 	if not node then
-		return
+		return RC.NODE_NOT_FOUND
 	end
 
 	node.children = children
+	M.update_children_depth(node.children, node.depth + 1)
+
+	return RC.SUCCESS
+end
+
+M.update_node = function(root, psymbol, pfilename, plnum, children) -- "p" is for parent
+	local ret = M.update_children(root, psymbol, pfilename, plnum, children)
+
+	if ret == RC.SUCCESS then
+		return root
+	end
+
+	return nil
 end
 
 return M

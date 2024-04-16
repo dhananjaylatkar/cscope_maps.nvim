@@ -19,14 +19,21 @@ local M = {}
 -- called  --> UP the stack
 
 M.cache = { buf = nil, win = nil }
-M.dir_map = { down = {indicator = "<- ", cs_func = function (symbol)
-	local _, res = cs.cscope_get_result(cs.op_s_n.c, "c", symbol)
-	return res
-end},
-up = {indicator = "-> ", cs_func = function(symbol)
-	local _, res = cs.cscope_get_result(cs.op_s_n.d, "d", symbol)
-	return res
-end}
+M.dir_map = {
+	down = {
+		indicator = "<- ",
+		cs_func = function(symbol)
+			local _, res = cs.cscope_get_result(cs.op_s_n.c, "c", symbol)
+			return res
+		end,
+	},
+	up = {
+		indicator = "-> ",
+		cs_func = function(symbol)
+			local _, res = cs.cscope_get_result(cs.op_s_n.d, "d", symbol)
+			return res
+		end,
+	},
 }
 
 local ft = "CsStackView"
@@ -35,7 +42,7 @@ local fn = vim.fn
 local root = nil
 local buf_lines = nil
 local cur_dir = nil
-
+local buf_last_pos = nil
 
 M.buf_lock = function()
 	api.nvim_buf_set_option(M.cache.buf, "readonly", true)
@@ -57,7 +64,8 @@ M.buf_open = function()
 	local row = vim_height * 0.15
 
 	M.cache.buf = M.cache.buf or api.nvim_create_buf(false, true)
-	M.cache.win = M.cache.win or  api.nvim_open_win(M.cache.buf, true, {
+	M.cache.win = M.cache.win
+		or api.nvim_open_win(M.cache.buf, true, {
 			relative = "editor",
 			title = ft,
 			title_pos = "center",
@@ -70,6 +78,7 @@ M.buf_open = function()
 			border = "single",
 		})
 	api.nvim_buf_set_option(M.cache.buf, "filetype", ft)
+	api.nvim_win_set_option(M.cache.win, "cursorline", true)
 end
 
 M.buf_close = function()
@@ -98,20 +107,23 @@ M.buf_update = function()
 
 	M.buf_unlock()
 	api.nvim_buf_set_lines(M.cache.buf, 0, -1, false, buf_lines)
+	if buf_last_pos ~= nil then
+		api.nvim_win_set_cursor(M.cache.win, { buf_last_pos, 0 })
+		buf_last_pos = nil
+	end
 	M.buf_lock()
 
-	vim.keymap.set("n", "q", function()
-		M.buf_close()
-	end, { buffer = M.cache.buf, silent = true })
-	vim.keymap.set("n", "<esc>", function()
-		M.buf_close()
-	end, { buffer = M.cache.buf, silent = true })
+	local keymap_opt = { buffer = M.cache.buf, silent = true }
+	vim.keymap.set("n", "q", M.toggle_win, keymap_opt)
+	vim.keymap.set("n", "<esc>", M.toggle_win, keymap_opt)
+	vim.keymap.set("n", "<tab>", M.toggle_children, keymap_opt)
+	vim.keymap.set("n", "<cr>", M.enter_action, keymap_opt)
 
 	local augroup = api.nvim_create_augroup("CscopeMaps", {})
 	api.nvim_create_autocmd({ "BufLeave" }, {
 		group = augroup,
 		buffer = M.cache.buf,
-		callback = M.buf_close
+		callback = M.buf_close,
 	})
 end
 
@@ -130,7 +142,6 @@ M.line_to_data = function(line)
 
 	return symbol, filename, lnum
 end
-
 
 M.buf_create_lines = function(node)
 	local item = ""
@@ -158,34 +169,7 @@ M.buf_create_lines = function(node)
 	end
 end
 
-M.update_tree = function(symbol, dir)
-	-- get functions calling given function
-	local _, res = cs.cscope_get_result(cs.op_s_n.c, "c", symbol)
-
-	if not res then
-		return RC.NO_RESULTS
-	end
-
-	local children = {}
-	local psymbol, pfilename, plnum = "", "", 0
-
-	if vim.bo.filetype == ft then
-		psymbol, pfilename, plnum = M.line_to_data(fn.getline("."))
-	else
-		psymbol, pfilename, plnum = symbol, fn.line("."), fn.expand("%")
-	end
-
-	-- update children list
-	for _, r in ipairs(res) do
-		local node = tree.create_node(r.ctx:sub(3, -3), r.filename, r.lnum)
-		table.insert(children, node)
-	end
-
-	root = tree.update_node(root, psymbol, pfilename, plnum, children)
-	-- print(vim.inspect(root))
-end
-
-M.expand = function()
+M.toggle_children = function()
 	if vim.bo.filetype ~= ft then
 		return
 	end
@@ -198,13 +182,16 @@ M.expand = function()
 		return
 	end
 
+	if fn.line(".") == 1 then
+		return
+	end
+
 	local psymbol, pfilename, plnum = M.line_to_data(fn.getline("."))
 	local cs_res = M.dir_map[cur_dir].cs_func(psymbol)
 
 	if not cs_res then
 		return
 	end
-
 
 	-- update children list
 	local children = {}
@@ -251,12 +238,27 @@ M.open = function(dir, symbol)
 	M.buf_update()
 end
 
-M.toggle = function()
+M.toggle_win = function()
 	if vim.bo.filetype == ft then
+		buf_last_pos = fn.line(".")
 		M.buf_close()
 		return
 	end
 	M.buf_update()
+end
+
+M.enter_action = function()
+	if vim.bo.filetype ~= ft then
+		return
+	end
+
+	if fn.line(".") == 1 then
+		return
+	end
+
+	local _, pfilename, plnum = M.line_to_data(fn.getline("."))
+	M.toggle_win()
+	api.nvim_command("edit +" .. plnum .. " " .. pfilename)
 end
 
 -- :Cs stack_view toggle

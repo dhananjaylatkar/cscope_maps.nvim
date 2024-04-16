@@ -19,9 +19,13 @@ M.create_node = function(symbol, filename, lnum)
 end
 
 M.compare_node = function(node, symbol, filename, lnum)
-	return (node and node.data and node.data.symbol == symbol
-			and node.data.filename == filename
-			and node.data.lnum == lnum)
+	return (
+		node
+		and node.data
+		and node.data.symbol == symbol
+		and node.data.filename == filename
+		and node.data.lnum == lnum
+	)
 end
 
 M.get_node = function(root, symbol, filename, lnum)
@@ -56,8 +60,12 @@ M.update_children = function(root, symbol, filename, lnum, children)
 		return RC.NODE_NOT_FOUND
 	end
 
-	node.children = children
-	M.update_children_depth(node.children, node.depth + 1)
+	if node.children == nil then
+		node.children = children
+		M.update_children_depth(node.children, node.depth + 1)
+	else
+		node.children = nil
+	end
 
 	return RC.SUCCESS
 end

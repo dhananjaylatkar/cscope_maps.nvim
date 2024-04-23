@@ -10,6 +10,7 @@ M.create_node = function(symbol, filename, lnum)
 	node.depth = 0
 	node.data = {}
 	node.is_root = false
+	node.id = 0
 
 	node.data.symbol = symbol
 	node.data.filename = filename
@@ -18,18 +19,15 @@ M.create_node = function(symbol, filename, lnum)
 	return node
 end
 
-M.compare_node = function(node, symbol, filename, lnum)
+M.compare_node = function(node, id)
 	return (
 		node
-		and node.data
-		and node.data.symbol == symbol
-		and node.data.filename == filename
-		and node.data.lnum == lnum
+		and node.id == id
 	)
 end
 
-M.get_node = function(root, symbol, filename, lnum)
-	if M.compare_node(root, symbol, filename, lnum) then
+M.get_node = function(root, id)
+	if M.compare_node(root, id) then
 		return root
 	end
 
@@ -40,7 +38,7 @@ M.get_node = function(root, symbol, filename, lnum)
 	end
 
 	for _, c in ipairs(children) do
-		local node = M.get_node(c, symbol, filename, lnum)
+		local node = M.get_node(c, id)
 		if node ~= nil then
 			return node
 		end
@@ -53,8 +51,8 @@ M.update_children_depth = function(children, depth)
 	end
 end
 
-M.update_children = function(root, symbol, filename, lnum, children)
-	local node = M.get_node(root, symbol, filename, lnum)
+M.update_children = function(root, parent_id, children)
+	local node = M.get_node(root, parent_id)
 
 	if not node then
 		return RC.NODE_NOT_FOUND
@@ -70,8 +68,8 @@ M.update_children = function(root, symbol, filename, lnum, children)
 	return RC.SUCCESS
 end
 
-M.update_node = function(root, psymbol, pfilename, plnum, children) -- "p" is for parent
-	local ret = M.update_children(root, psymbol, pfilename, plnum, children)
+M.update_node = function(root, parent_id, children)
+	local ret = M.update_children(root, parent_id, children)
 
 	if ret == RC.SUCCESS then
 		return root

@@ -159,6 +159,7 @@ M.buf_create_lines = function(node)
 	end
 
 	table.insert(buf_lines, item)
+        node.id = #buf_lines
 
 	if not node.children then
 		return
@@ -182,11 +183,14 @@ M.toggle_children = function()
 		return
 	end
 
-	if fn.line(".") == 1 then
+        local cur_line = fn.line(".")
+
+	if cur_line == 1 then
 		return
 	end
 
 	local psymbol, pfilename, plnum = M.line_to_data(fn.getline("."))
+        local parent_id = cur_line
 	local cs_res = M.dir_map[cur_dir].cs_func(psymbol)
 
 	if not cs_res then
@@ -200,7 +204,7 @@ M.toggle_children = function()
 		table.insert(children, node)
 	end
 
-	root = tree.update_node(root, psymbol, pfilename, plnum, children)
+	root = tree.update_node(root, parent_id, children)
 	M.buf_update()
 end
 

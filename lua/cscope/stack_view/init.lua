@@ -1,5 +1,6 @@
 local cs = require("cscope")
 local tree = require("cscope.stack_view.tree")
+local hl = require("cscope.stack_view.highlight")
 local RC = require("utils.ret_codes")
 local M = {}
 
@@ -125,6 +126,7 @@ M.buf_update = function()
 		buffer = M.cache.buf,
 		callback = M.buf_close,
 	})
+	hl.refresh(M.cache.buf, root)
 end
 
 M.line_to_data = function(line)
@@ -215,6 +217,7 @@ M.open = function(dir, symbol)
 
 	M.buf_close()
 	root = nil
+	buf_last_pos = nil
 
 	if not vim.tbl_contains(vim.tbl_keys(M.dir_map), dir) then
 		return

@@ -6,7 +6,7 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
 **Adds `cscope` support for [Neovim](https://neovim.io/) 0.9+**
 
-[cscope_maps.nvim.webm](https://github.com/dhananjaylatkar/cscope_maps.nvim/assets/27724944/8b6a392a-c1d3-4ead-ae9b-a50436d52eef)
+[cscope_maps.nvim.v2.webm](https://github.com/dhananjaylatkar/cscope_maps.nvim/assets/27724944/7ab4d902-fe6d-4914-bff6-353136c72803)
 
 ## Features
 

@@ -169,7 +169,7 @@ M.buf_create_lines = function(node)
 	end
 
 	table.insert(buf_lines, item)
-        node.id = #buf_lines
+	node.id = #buf_lines
 
 	if not node.children then
 		return
@@ -193,14 +193,14 @@ M.toggle_children = function()
 		return
 	end
 
-        local cur_line = fn.line(".")
+	local cur_line = fn.line(".")
 
 	if cur_line == 1 then
 		return
 	end
 
 	local psymbol, pfilename, plnum = M.line_to_data(fn.getline("."))
-        local parent_id = cur_line
+	local parent_id = cur_line
 	local cs_res = M.dir_map[cur_dir].cs_func(psymbol)
 
 	if not cs_res then
@@ -276,7 +276,55 @@ M.enter_action = function()
 	api.nvim_command("edit +" .. plnum .. " " .. pfilename)
 end
 
--- :Cs stack_view toggle
--- :Cs stack_view open down|up symbol
+-- :CsStackView toggle
+-- :CsStackView open down|up symbol
+
+M.run_cmd = function(args)
+	local cmd = args[1]
+
+	if vim.startswith(cmd, "o") then
+		if #args ~= 3 then
+			return
+		end
+		local stk_dir = args[2]
+		local symbol = args[3]
+		if vim.startswith(stk_dir, "d") then
+			stk_dir = "down"
+		elseif vim.startswith(stk_dir, "u") then
+			stk_dir = "up"
+		end
+		M.open(stk_dir, symbol)
+	elseif vim.startswith(cmd, "t") then
+		M.toggle_win()
+	end
+end
+
+M.set_user_cmd = function()
+	-- Create the :CsStackView user command
+	vim.api.nvim_create_user_command("CsStackView", function(opts)
+		M.run_cmd(opts.fargs)
+	end, {
+		nargs = "*",
+		complete = function(_, line)
+			local cmds = { "open", "toggle" }
+			local l = vim.split(line, "%s+")
+			local n = #l - 2
+
+			if n == 0 then
+				return vim.tbl_filter(function(val)
+					return vim.startswith(val, l[2])
+				end, cmds)
+			end
+
+			if n == 1 and vim.startswith(l[2], "o") then
+				return { "down", "up" }
+			end
+		end,
+	})
+end
+
+M.setup = function()
+	M.set_user_cmd()
+end
 
 return M

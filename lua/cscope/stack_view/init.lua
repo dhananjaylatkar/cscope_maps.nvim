@@ -1,7 +1,6 @@
 local cs = require("cscope")
 local tree = require("cscope.stack_view.tree")
-local hl = require("cscope.stack_view.highlight")
-local RC = require("utils.ret_codes")
+local hl = require("cscope.stack_view.hl")
 local M = {}
 
 -- m()
@@ -37,7 +36,7 @@ M.dir_map = {
 	},
 }
 
-local ft = "CsStackView"
+M.ft = "CsStackView"
 local api = vim.api
 local fn = vim.fn
 local root = nil
@@ -68,7 +67,7 @@ M.buf_open = function()
 	M.cache.win = M.cache.win
 		or api.nvim_open_win(M.cache.buf, true, {
 			relative = "editor",
-			title = ft,
+			title = M.ft,
 			title_pos = "center",
 			width = width,
 			height = height,
@@ -78,7 +77,7 @@ M.buf_open = function()
 			focusable = false,
 			border = "single",
 		})
-	api.nvim_buf_set_option(M.cache.buf, "filetype", ft)
+	api.nvim_buf_set_option(M.cache.buf, "filetype", M.ft)
 	api.nvim_win_set_option(M.cache.win, "cursorline", true)
 end
 
@@ -124,9 +123,18 @@ M.buf_update = function()
 	api.nvim_create_autocmd({ "BufLeave" }, {
 		group = augroup,
 		buffer = M.cache.buf,
-		callback = M.buf_close,
+		callback = M.toggle_win,
 	})
-	hl.refresh(M.cache.buf, root)
+
+	api.nvim_create_autocmd("CursorMoved", {
+		group = augroup,
+		buffer = M.cache.buf,
+		callback = function()
+			hl.refresh(M.cache.buf, root, #buf_lines)
+		end,
+	})
+
+	-- hl.refresh(M.cache.buf, root, #buf_lines)
 end
 
 M.line_to_data = function(line)
@@ -173,7 +181,7 @@ M.buf_create_lines = function(node)
 end
 
 M.toggle_children = function()
-	if vim.bo.filetype ~= ft then
+	if vim.bo.filetype ~= M.ft then
 		return
 	end
 
@@ -211,7 +219,7 @@ M.toggle_children = function()
 end
 
 M.open = function(dir, symbol)
-	if vim.bo.filetype == ft then
+	if vim.bo.filetype == M.ft then
 		return
 	end
 
@@ -246,7 +254,7 @@ M.open = function(dir, symbol)
 end
 
 M.toggle_win = function()
-	if vim.bo.filetype == ft then
+	if vim.bo.filetype == M.ft then
 		buf_last_pos = fn.line(".")
 		M.buf_close()
 		return
@@ -255,7 +263,7 @@ M.toggle_win = function()
 end
 
 M.enter_action = function()
-	if vim.bo.filetype ~= ft then
+	if vim.bo.filetype ~= M.ft then
 		return
 	end
 

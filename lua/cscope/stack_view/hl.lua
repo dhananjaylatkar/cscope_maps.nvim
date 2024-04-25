@@ -3,6 +3,7 @@ local fn = vim.fn
 local api = vim.api
 
 local M = {}
+M.ft = "CsStackView"
 
 M.get_pos = function(lnum)
 	local line = fn.getline(lnum)
@@ -13,12 +14,12 @@ M.get_pos = function(lnum)
 	local line_split = vim.split(line, "%s+")
 	local symbol = line_split[2]
 	local fname = ""
-	local lnum = 0
+	local flnum = ""
 
 	if #line_split == 3 then
 		local file_loc = vim.split(line_split[3], ":")
 		fname = file_loc[1]:sub(2)
-		lnum = file_loc[2]:sub(1, -2)
+		flnum = file_loc[2]:sub(1, -2)
 	end
 
 	local indicator_s = indent_len
@@ -37,7 +38,7 @@ M.get_pos = function(lnum)
 	local delim_e = fname_e+1
 
 	local lnum_s = fname_e+1
-	local lnum_e = lnum_s+#lnum
+	local lnum_e = lnum_s+#flnum
 
 	local bc_s = lnum_e
 	local bc_e = bc_s+1
@@ -45,19 +46,22 @@ M.get_pos = function(lnum)
 	return indicator_s, indicator_e, symbol_s, symbol_e, bo_s, bo_e, fname_s, fname_e, delim_s, delim_e, lnum_s, lnum_e, bc_s, bc_e
 end
 
-M.refresh = function(buf, root)
+M.refresh = function(buf, root, num_of_lines)
+	if vim.bo.filetype ~= M.ft then
+		return
+	end
 	local ancestors = tree.get_ancestors(root, fn.line("."))
 
 	local ns = api.nvim_create_namespace("CsStackViewHighlight")
+	local buf_lnum = 0
 
 	api.nvim_buf_clear_namespace(buf, ns, 0, -1)
 
-	for _, a in ipairs(ancestors) do
-		buf_lnum = a - 1
-		if a == 1 then
+	while buf_lnum < num_of_lines do
+		if buf_lnum == 0 then
 			api.nvim_buf_add_highlight(buf, ns, "Function", buf_lnum, 0, -1)
-		else
-			local indicator_s, indicator_e, symbol_s, symbol_e, bo_s, bo_e, fname_s, fname_e, delim_s, delim_e, lnum_s, lnum_e, bc_s, bc_e = M.get_pos(a)
+		elseif vim.tbl_contains(ancestors, buf_lnum+1) then
+			local indicator_s, indicator_e, symbol_s, symbol_e, bo_s, bo_e, fname_s, fname_e, delim_s, delim_e, lnum_s, lnum_e, bc_s, bc_e = M.get_pos(buf_lnum+1)
 			api.nvim_buf_add_highlight(buf, ns, "Operator", buf_lnum,  indicator_s, indicator_e)
 			api.nvim_buf_add_highlight(buf, ns, "Function", buf_lnum,  symbol_s, symbol_e)
 			api.nvim_buf_add_highlight(buf, ns, "Delimiter", buf_lnum,  bo_s, bo_e)
@@ -65,9 +69,11 @@ M.refresh = function(buf, root)
 			api.nvim_buf_add_highlight(buf, ns, "Delimiter", buf_lnum,  delim_s, delim_e)
 			api.nvim_buf_add_highlight(buf, ns, "Number", buf_lnum,  lnum_s, lnum_e)
 			api.nvim_buf_add_highlight(buf, ns, "Delimiter", buf_lnum,  bc_s, bc_e)
+		else
+			api.nvim_buf_add_highlight(buf, ns, "Comment", buf_lnum, 0, -1)
 		end
+		buf_lnum = buf_lnum + 1
 	end
-
 end
 
 return M

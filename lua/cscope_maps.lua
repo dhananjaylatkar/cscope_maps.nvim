@@ -1,4 +1,5 @@
 local helper = require("utils.helper")
+local sv = require("cscope.stack_view")
 local M = {}
 
 -- Configurable options
@@ -47,6 +48,8 @@ M.setup = function(opts)
 		-- Mappings
 		helper.init_keymaps(M.opts.prefix)
 	end
+
+	sv.setup()
 end
 
 return M

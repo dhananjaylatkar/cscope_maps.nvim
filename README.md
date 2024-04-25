@@ -8,26 +8,37 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
 [cscope_maps.nvim.webm](https://github.com/dhananjaylatkar/cscope_maps.nvim/assets/27724944/8b6a392a-c1d3-4ead-ae9b-a50436d52eef)
 
-## 🌟 Cscope support
+## Features
+
+### Cscope
 
 - Tries to mimic vim's builtin cscope functionality.
 - Provides user command, `:Cscope` which acts same as good old `:cscope`.
 - Short commands are supported. e.g. `:Cs f g main`
-- No need to add cscope database (`:cscope add <file>`), it is automaticaly picked from current directory or `db_file` option.
-- Only want to use Cscope? No worries, keymaps can be disabled using `disable_maps` option.
+- No need to add cscope database (`:cscope add <file>`), it is automatically picked from current directory or `db_file` option.
+- Keymaps can be disabled using `disable_maps` option.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 - `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
-- `:Cscope db build` builds cscope db (no more going to terminal just to update the db)
+- `:Cscope build` builds cscope db
   - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
 - `:Cscope db add <space sepatated files>` add db file(s) to cscope search
 - `:Cscope db rm <space sepatated files>` remove db file(s) from cscope search
 - For `nvim < 0.9`, legacy cscope will be used. It will support keymaps. It won't have all the niceties of lua port.
-
-## Features
-
 - Opens results in quickfix, **telescope**, or **fzf-lua**.
 - Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints.
 - See [this section](#vim-gutentags) for `vim-gutentags`.
+
+### Stack View
+
+- Visualize tree of caller functions and called functions.
+- `:CsStackView open down <sym>` Opens "downward" stack showing all the functions who call the `<sym>`.
+- `:CsStackView open up <sym>` Opens "upward" stack showing all the functions called by the `<sym>`.
+- In `CsStackView` window, use following keymaps
+  - `<tab>` toggle child under cursor
+  - `<cr>` open location of symbol under cursor
+  - `q` close window
+- `:CsStackView toggle` reopens last `CsStackView` window.
+- In `CsStackView` window, all nodes that are part of current stack are highlighted.
 
 ## Installation
 

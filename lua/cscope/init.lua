@@ -1,6 +1,6 @@
-local RC = require("csope_maps.utils.ret_codes")
-local log = require("csope_maps.utils.log")
-local helper = require("csope_maps.utils.helper")
+local RC = require("cscope_maps.utils.ret_codes")
+local log = require("cscope_maps.utils.log")
+local helper = require("cscope_maps.utils.helper")
 
 local M = {}
 

@@ -1,4 +1,4 @@
-local RC = require("csope_maps.utils.ret_codes")
+local RC = require("cscope_maps.utils.ret_codes")
 local M = {}
 
 --- node = {data: d, children: {n1, n2, n3, ...}}

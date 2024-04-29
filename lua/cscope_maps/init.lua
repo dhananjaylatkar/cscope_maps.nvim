@@ -1,4 +1,4 @@
-local helper = require("utils.helper")
+local helper = require("csope_maps.utils.helper")
 local sv = require("cscope.stack_view")
 local M = {}
 

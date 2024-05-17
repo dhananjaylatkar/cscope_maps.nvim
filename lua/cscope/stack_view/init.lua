@@ -18,7 +18,7 @@ local M = {}
 -- callers --> DOWN the stack
 -- called  --> UP the stack
 
-M.cache = { buf = nil, win = nil }
+M.cache = { sv = { buf = nil, win = nil }, pv = { buf = nil, win = nil } }
 M.dir_map = {
 	down = {
 		indicator = "<- ",
@@ -44,54 +44,82 @@ local buf_lines = nil
 local cur_dir = nil
 local buf_last_pos = nil
 
-M.buf_lock = function()
-	api.nvim_buf_set_option(M.cache.buf, "readonly", true)
-	api.nvim_buf_set_option(M.cache.buf, "modifiable", false)
+M.buf_lock = function(buf)
+	api.nvim_buf_set_option(buf, "readonly", true)
+	api.nvim_buf_set_option(buf, "modifiable", false)
 end
 
-M.buf_unlock = function()
-	api.nvim_buf_set_option(M.cache.buf, "readonly", false)
-	api.nvim_buf_set_option(M.cache.buf, "modifiable", true)
+M.buf_unlock = function(buf)
+	api.nvim_buf_set_option(buf, "readonly", false)
+	api.nvim_buf_set_option(buf, "modifiable", true)
 end
 
 M.buf_open = function()
 	local vim_height = vim.o.lines
 	local vim_width = vim.o.columns
 
-	local width = math.floor(vim_width * 0.8) + 3
+	local width = math.floor(vim_width * 0.8 / 2 + 3 / 2)
 	local height = math.floor(vim_height * 0.7)
 	local col = vim_width * 0.1 - 1
 	local row = vim_height * 0.15
 
-	M.cache.buf = M.cache.buf or api.nvim_create_buf(false, true)
-	M.cache.win = M.cache.win
-		or api.nvim_open_win(M.cache.buf, true, {
+	M.cache.pv.buf = M.cache.pv.buf or api.nvim_create_buf(false, true)
+	M.cache.pv.win = M.cache.pv.win
+		or api.nvim_open_win(M.cache.pv.buf, true, {
 			relative = "editor",
-			title = M.ft,
+			title = "preview",
 			title_pos = "center",
 			width = width,
 			height = height,
-			col = col,
+			col = col + 1 + width,
 			row = row,
 			style = "minimal",
 			focusable = false,
 			border = "single",
 		})
-	api.nvim_buf_set_option(M.cache.buf, "filetype", M.ft)
-	api.nvim_win_set_option(M.cache.win, "cursorline", true)
+	api.nvim_buf_set_option(M.cache.pv.buf, "filetype", "c")
+	api.nvim_win_set_option(M.cache.pv.win, "cursorline", true)
+
+	M.cache.sv.buf = M.cache.sv.buf or api.nvim_create_buf(false, true)
+	M.cache.sv.win = M.cache.sv.win
+		or api.nvim_open_win(M.cache.sv.buf, true, {
+			relative = "editor",
+			title = M.ft,
+			title_pos = "center",
+			width = width,
+			height = height,
+			col = col - 1,
+			row = row,
+			style = "minimal",
+			focusable = false,
+			border = "single",
+		})
+	api.nvim_buf_set_option(M.cache.sv.buf, "filetype", M.ft)
+	api.nvim_win_set_option(M.cache.sv.win, "cursorline", true)
 end
 
 M.buf_close = function()
-	if M.cache.buf ~= nil and api.nvim_buf_is_valid(M.cache.buf) then
-		api.nvim_buf_delete(M.cache.buf, { force = true })
+	if M.cache.sv.buf ~= nil and api.nvim_buf_is_valid(M.cache.sv.buf) then
+		api.nvim_buf_delete(M.cache.sv.buf, { force = true })
 	end
 
-	if M.cache.win ~= nil and api.nvim_win_is_valid(M.cache.win) then
-		api.nvim_win_close(M.cache.win, true)
+	if M.cache.sv.win ~= nil and api.nvim_win_is_valid(M.cache.sv.win) then
+		api.nvim_win_close(M.cache.sv.win, true)
 	end
 
-	M.cache.buf = nil
-	M.cache.win = nil
+	if M.cache.pv.buf ~= nil and api.nvim_buf_is_valid(M.cache.pv.buf) then
+		api.nvim_buf_delete(M.cache.pv.buf, { force = true })
+	end
+
+	if M.cache.pv.win ~= nil and api.nvim_win_is_valid(M.cache.pv.win) then
+		api.nvim_win_close(M.cache.pv.win, true)
+	end
+
+	M.cache.sv.buf = nil
+	M.cache.sv.win = nil
+
+	M.cache.pv.buf = nil
+	M.cache.pv.win = nil
 end
 
 M.buf_update = function()
@@ -105,15 +133,15 @@ M.buf_update = function()
 	-- print(vim.inspect(buf_lines))
 	M.buf_open()
 
-	M.buf_unlock()
-	api.nvim_buf_set_lines(M.cache.buf, 0, -1, false, buf_lines)
+	M.buf_unlock(M.cache.sv.buf)
+	api.nvim_buf_set_lines(M.cache.sv.buf, 0, -1, false, buf_lines)
 	if buf_last_pos ~= nil then
-		api.nvim_win_set_cursor(M.cache.win, { buf_last_pos, 0 })
+		api.nvim_win_set_cursor(M.cache.sv.win, { buf_last_pos, 0 })
 		buf_last_pos = nil
 	end
-	M.buf_lock()
+	M.buf_lock(M.cache.sv.buf)
 
-	local keymap_opt = { buffer = M.cache.buf, silent = true }
+	local keymap_opt = { buffer = M.cache.sv.buf, silent = true }
 	vim.keymap.set("n", "q", M.toggle_win, keymap_opt)
 	vim.keymap.set("n", "<esc>", M.toggle_win, keymap_opt)
 	vim.keymap.set("n", "<tab>", M.toggle_children, keymap_opt)
@@ -122,19 +150,43 @@ M.buf_update = function()
 	local augroup = api.nvim_create_augroup("CscopeMaps", {})
 	api.nvim_create_autocmd({ "BufLeave" }, {
 		group = augroup,
-		buffer = M.cache.buf,
+		buffer = M.cache.sv.buf,
 		callback = M.toggle_win,
 	})
 
 	api.nvim_create_autocmd("CursorMoved", {
 		group = augroup,
-		buffer = M.cache.buf,
+		buffer = M.cache.sv.buf,
 		callback = function()
-			hl.refresh(M.cache.buf, root, #buf_lines)
+			hl.refresh(M.cache.sv.buf, root, #buf_lines)
+			M.preview_update()
 		end,
 	})
+end
 
-	-- hl.refresh(M.cache.buf, root, #buf_lines)
+--- Read data from given file
+--- @param file string
+--- @return table
+M.read_lines_from_file = function(file)
+	local lines = {}
+	for line in io.lines(file) do
+		lines[#lines + 1] = line
+	end
+	return lines
+end
+
+--- Update preview window to show location under cursor
+M.preview_update = function()
+	vim.schedule(function()
+		local _, filename, lnum = M.line_to_data(fn.getline("."))
+		if filename == "" then
+			api.nvim_buf_set_lines(M.cache.pv.buf, 0, -1, false, {})
+			return
+		end
+		local lines = M.read_lines_from_file(filename)
+		api.nvim_buf_set_lines(M.cache.pv.buf, 0, -1, false, lines)
+		api.nvim_win_set_cursor(M.cache.pv.win, { lnum, 0 })
+	end)
 end
 
 M.line_to_data = function(line)

@@ -45,13 +45,13 @@ local cur_dir = nil
 local buf_last_pos = nil
 
 M.buf_lock = function(buf)
-	api.nvim_buf_set_option(buf, "readonly", true)
-	api.nvim_buf_set_option(buf, "modifiable", false)
+	api.nvim_set_option_value("readonly", true, { buf = buf })
+	api.nvim_set_option_value("modifiable", false, { buf = buf })
 end
 
 M.buf_unlock = function(buf)
-	api.nvim_buf_set_option(buf, "readonly", false)
-	api.nvim_buf_set_option(buf, "modifiable", true)
+	api.nvim_set_option_value("readonly", false, { buf = buf })
+	api.nvim_set_option_value("modifiable", true, { buf = buf })
 end
 
 M.buf_open = function()
@@ -77,8 +77,8 @@ M.buf_open = function()
 			focusable = false,
 			border = "single",
 		})
-	api.nvim_buf_set_option(M.cache.pv.buf, "filetype", "c")
-	api.nvim_win_set_option(M.cache.pv.win, "cursorline", true)
+	api.nvim_set_option_value("filetype", "c", { buf = M.cache.pv.buf })
+	api.nvim_set_option_value("cursorline", true, { win = M.cache.pv.win })
 
 	M.cache.sv.buf = M.cache.sv.buf or api.nvim_create_buf(false, true)
 	M.cache.sv.win = M.cache.sv.win
@@ -94,8 +94,8 @@ M.buf_open = function()
 			focusable = false,
 			border = "single",
 		})
-	api.nvim_buf_set_option(M.cache.sv.buf, "filetype", M.ft)
-	api.nvim_win_set_option(M.cache.sv.win, "cursorline", true)
+	api.nvim_set_option_value("filetype", M.ft, { buf = M.cache.sv.buf })
+	api.nvim_set_option_value("cursorline", true, { win = M.cache.sv.win })
 end
 
 M.buf_close = function()

@@ -1,4 +1,4 @@
-*cscope_maps.txt*           For NVIM v0.8.0           Last change: 2024 May 25
+*cscope_maps.txt*        For Neovim >= v0.10.0        Last change: 2024 May 25
 
 ==============================================================================
 Table of Contents                              *cscope_maps-table-of-contents*
@@ -176,7 +176,7 @@ DEFAULT KEYMAPS ~
 `<prefix>` can be configured using `prefix` option. Default value for prefix is
 `<leader>c`.
 
-(Try setting it to `C-c` 😉)
+(Try setting it to `C-c` )
 
   -----------------------------------------------------------------------
   Keymaps           Description

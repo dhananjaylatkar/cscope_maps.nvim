@@ -256,7 +256,7 @@ local cscope_cstag = function(symbol)
 		return cscope_open_picker(op, symbol, res)
 	else
 		-- log.info("trying tags...")
-		if not pcall(vim.cmd.tag, symbol) then
+		if not pcall(vim.cmd.tjump, symbol) then
 			log.warn("Vim(tag):E426: tag not found: " .. symbol)
 			return RC.NO_RESULTS
 		end

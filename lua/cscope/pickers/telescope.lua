@@ -4,12 +4,13 @@ local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local config = require("telescope.config")
 local utils = require("telescope.utils")
+local cs_utils = require("cscope_maps.utils")
 
 local entry_maker = function(entry)
 	return {
 		value = entry,
 		display = function()
-			local display_filename = utils.transform_path({}, entry["filename"])
+			local display_filename = cs_utils.get_rel_path(vim.fn.getcwd(), entry["filename"])
 			local coordinates = string.format(":%s:", entry["lnum"])
 			local display_string = "%s%s%s"
 			local display, hl_group, icon = utils.transform_devicons(

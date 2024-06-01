@@ -1,6 +1,7 @@
 local RC = require("cscope_maps.utils.ret_codes")
 local log = require("cscope_maps.utils.log")
 local helper = require("cscope_maps.utils.helper")
+local utils = require("cscope_maps.utils")
 
 local M = {}
 
@@ -102,6 +103,11 @@ local cscope_parse_line = function(line)
 	local sp = vim.split(line, "%s+")
 
 	t.filename = sp[1]
+	if M.opts.picker ~= "telescope" then
+		-- workaround until https://github.com/nvim-telescope/telescope.nvim/pull/3151 is merged
+		t.filename = utils.get_rel_path(vim.fn.getcwd(), t.filename)
+	end
+
 	-- update path if project_rooter is enabled
 	if M.opts.project_rooter.enable and not M.opts.project_rooter.change_cwd and project_root ~= nil then
 		t.filename = project_root .. "/" .. t.filename

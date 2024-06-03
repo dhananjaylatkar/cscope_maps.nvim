@@ -1,6 +1,9 @@
 name: panvimdoc
 
-on: [push]
+on:
+  push:
+    paths:
+      - "README.md"
 
 jobs:
   docs:

@@ -23,14 +23,14 @@ M.dir_map = {
 	down = {
 		indicator = "<- ",
 		cs_func = function(symbol)
-			local _, res = cs.cscope_get_result(cs.op_s_n.c, "c", symbol)
+			local _, res = cs.get_result(cs.op_s_n.c, "c", symbol)
 			return res
 		end,
 	},
 	up = {
 		indicator = "-> ",
 		cs_func = function(symbol)
-			local _, res = cs.cscope_get_result(cs.op_s_n.d, "d", symbol)
+			local _, res = cs.get_result(cs.op_s_n.d, "d", symbol)
 			return res
 		end,
 	},

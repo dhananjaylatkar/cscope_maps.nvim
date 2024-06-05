@@ -25,7 +25,7 @@ local entry_maker = function(entry)
 				return display
 			end
 		end,
-		ordinal = entry["filename"],
+		ordinal = entry["filename"] .. entry["text"],
 		path = entry["filename"],
 		lnum = tonumber(entry["lnum"]),
 	}

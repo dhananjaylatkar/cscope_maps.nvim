@@ -70,10 +70,11 @@ find : Query for a pattern            (Usage: find a|c|d|e|f|g|i|s|t name)
        s: Find this C symbol
        t: Find this text string
 
-db   : DB related queries             (Usage: db build|add <files>|rm <files>)
+db   : DB related queries             (Usage: db build|add <files>|rm <files>|show)
        build : Build cscope database
        add   : Add db file(s)
-       rm    : remove db file(s)
+       rm    : Remove db file(s)
+       show  : Show current db file(s)
 
 help : Show this message              (Usage: help)
 ]])
@@ -413,6 +414,8 @@ M.run = function(args)
 			end
 
 			M.db_update(op, files)
+		elseif op == "s" then
+			log.warn("current DB list: " .. vim.inspect(M.opts.db_file))
 		else
 			log.warn("invalid operation")
 		end
@@ -441,7 +444,7 @@ M.cmd_cmp = function(_, line)
 		end
 
 		if short_cmd == "d" then
-			return { "build", "add", "rm" }
+			return { "build", "add", "rm", "show" }
 		end
 	end
 end

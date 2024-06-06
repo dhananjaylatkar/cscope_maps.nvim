@@ -2,7 +2,11 @@ local helper = require("cscope_maps.utils.helper")
 local sv = require("cscope.stack_view")
 local M = {}
 
--- Configurable options
+---@class CsMapsConfig
+---@field disable_maps? boolean
+---@field skip_input_prompt? boolean
+---@field prefix? string
+---@field cscope? CsConfig
 M.opts = {
 	disable_maps = false, -- "true" disables default keymaps
 	skip_input_prompt = false, -- "true" doesn't ask for input
@@ -10,6 +14,8 @@ M.opts = {
 	cscope = {}, -- defaults are in cscope.lua
 }
 
+---Initialization api
+---@param opts CsMapsConfig
 M.setup = function(opts)
 	opts = opts or {}
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)

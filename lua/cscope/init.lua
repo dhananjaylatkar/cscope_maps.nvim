@@ -5,6 +5,20 @@ local utils = require("cscope_maps.utils")
 
 local M = {}
 
+---@class CsProjectRooterConfig
+---@field enable? boolean
+---@field change_cwd? boolean
+
+---@class CsConfig
+---@field db_file? string|[string]
+---@field exec? string
+---@field picker? string
+---@field qf_window_size? integer
+---@field qf_window_pos? string
+---@field skip_picker_for_single_result? boolean
+---@field db_build_cmd_args? table
+---@field statusline_indicator? string|nil
+---@field project_rooter? CsProjectRooterConfig
 M.opts = {
 	db_file = "./cscope.out",
 	exec = "cscope",
@@ -67,15 +81,10 @@ end
 
 --- if opts.db_file is a table then return 1st item
 M.get_db_file = function()
-	local db_file = ""
-
 	if type(M.opts.db_file) == "table" then
-		db_file = M.opts.db_file[1]
-	else
-		db_file = M.opts.db_file
+		return M.opts.db_file[1]
 	end
-
-	return db_file
+	return M.opts.db_file
 end
 
 M.push_tagstack = function()
@@ -261,13 +270,13 @@ M.cstag = function(symbol)
 	local ok, res = M.get_result(M.op_s_n[op], op, symbol, true)
 	if ok == RC.SUCCESS then
 		return M.open_picker(op, symbol, res)
-	else
-		-- log.info("trying tags...")
-		if not pcall(vim.cmd.tjump, symbol) then
-			log.warn("Vim(tag):E426: tag not found: " .. symbol)
-			return RC.NO_RESULTS
-		end
 	end
+	-- log.info("trying tags...")
+	if not pcall(vim.cmd.tjump, symbol) then
+		log.warn("Vim(tag):E426: tag not found: " .. symbol)
+		return RC.NO_RESULTS
+	end
+	return RC.NO_RESULTS
 end
 
 M.db_build_output = function(err, data)
@@ -487,6 +496,8 @@ M.project_root = function(db_file)
 	end
 end
 
+---Initialization API for inbuilt cscope
+---Used for neovim < 0.9
 M.legacy_setup = function()
 	-- use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
 	vim.opt.cscopetag = true
@@ -511,6 +522,8 @@ M.legacy_setup = function()
 	end
 end
 
+---Initialization api
+---@param opts CsConfig
 M.setup = function(opts)
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
 	-- This variable can be used by other plugins to change db_file

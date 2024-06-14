@@ -55,6 +55,7 @@ end
 
 local cscope_picker = nil
 local project_root = nil
+local db_cons = {}
 
 M.help = function()
 	print([[
@@ -114,8 +115,12 @@ M.parse_line = function(line)
 	local sp = vim.split(line, "%s+")
 
 	t.filename = sp[1]
-	if M.opts.picker ~= "telescope" then
-		-- workaround until https://github.com/nvim-telescope/telescope.nvim/pull/3151 is merged
+	if M.opts.picker == "telescope" then
+		-- telescope can't handle relative paths, always use abs paths
+		if vim.startswith(t.filename, "..") then
+			t.filename = utils.get_abs_path(t.filename)
+		end
+	else
 		t.filename = utils.get_rel_path(vim.fn.getcwd(), t.filename)
 	end
 
@@ -188,23 +193,43 @@ M.cmd_exec = function(cmd)
 	return output
 end
 
+M.get_db_and_rel_path = function(db_item)
+	local sp_db_item = vim.split(db_item, ":")
+	local db_file = sp_db_item[1]
+	local db_rel = sp_db_item[2] or ""
+
+	if db_rel == "." or db_rel == "./" then
+		db_rel = ""
+	end
+
+	return db_file, db_rel
+end
+
 M.get_result = function(op_n, op_s, symbol, hide_log)
 	-- Executes cscope search and return parsed output
 
-	local db_file = vim.g.cscope_maps_db_file or M.opts.db_file
+	local db_item = vim.g.cscope_maps_db_file or M.opts.db_file
 	local cmd = string.format("%s -dL -%s %s", M.opts.exec, op_n, symbol)
 	local out = ""
 
 	if M.opts.exec == "cscope" then
-		if type(db_file) == "string" then
+		if type(db_item) == "string" then
+			local db_file, db_rel = M.get_db_and_rel_path(db_item)
 			if vim.loop.fs_stat(db_file) ~= nil then
 				cmd = string.format("%s -f %s", cmd, db_file)
+				if db_rel ~= "" then
+					cmd = cmd .. string.format(" -P %s", db_rel)
+				end
 				out = M.cmd_exec(cmd)
 			end
 		else -- table
-			for _, db in ipairs(db_file) do
-				if vim.loop.fs_stat(db) ~= nil then
-					local _cmd = string.format("%s -f %s", cmd, db)
+			for _, db in ipairs(db_item) do
+				local db_file, db_rel = M.get_db_and_rel_path(db)
+				if vim.loop.fs_stat(db_file) ~= nil then
+					local _cmd = string.format("%s -f %s", cmd, db_file)
+					if db_rel ~= "" then
+						_cmd = _cmd .. string.format(" -P %s", db_rel)
+					end
 					out = string.format("%s%s", out, M.cmd_exec(_cmd))
 				end
 			end
@@ -294,7 +319,11 @@ M.db_build = function()
 	local stderr = vim.loop.new_pipe(false)
 	local db_build_cmd_args = vim.tbl_deep_extend("force", M.opts.db_build_cmd_args, {})
 	local cur_path = vim.fn.expand("%:p:h", true)
-	local db_file = M.get_db_file()
+	local db_file, db_rel = M.get_db_and_rel_path(M.get_db_file())
+
+	if db_rel ~= "" then
+		log.warn("db build is not supported for rel-path")
+	end
 
 	if vim.g.cscope_maps_statusline_indicator then
 		log.warn("db build is already in progress")
@@ -337,6 +366,14 @@ M.db_build = function()
 	)
 	vim.loop.read_start(stdout, M.db_build_output)
 	vim.loop.read_start(stderr, M.db_build_output)
+end
+
+M.db_register_con = function (path)
+	local sp_path = vim.split(path, ":")
+	local file = sp_path[1]
+	local rel = sp_path[2]
+
+	table.insert(db_cons, {file = file, rel = rel})
 end
 
 M.db_update = function(op, files)
@@ -536,7 +573,7 @@ M.setup = function(opts)
 	vim.g.cscope_maps_statusline_indicator = nil
 
 	if M.opts.project_rooter.enable then
-		local db_file = M.get_db_file()
+		local db_file, _ = M.get_db_and_rel_path(M.get_db_file())
 		project_root = M.project_root(db_file)
 		if project_root ~= nil then
 			local new_db_path = string.format("%s/%s", project_root, db_file)

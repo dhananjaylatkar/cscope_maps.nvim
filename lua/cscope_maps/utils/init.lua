@@ -1,7 +1,14 @@
 local M = {}
 
 local non_empty = function(item)
-	return item and item ~= ""
+	return item and item ~= "" and item ~= "."
+end
+
+--- Check is given path is absolute path
+---@param path string
+---@return boolean
+M.is_path_abs = function(path)
+	return vim.startswith(path, "/")
 end
 
 --- Get relative path
@@ -11,7 +18,7 @@ end
 ---@param path string
 ---@return string
 M.get_rel_path = function(rel_to, path)
-	if not vim.startswith(rel_to, "/") or not vim.startswith(path, "/") then
+	if not M.is_path_abs(rel_to) or not M.is_path_abs(path) then
 		return path
 	end
 
@@ -38,6 +45,57 @@ M.get_rel_path = function(rel_to, path)
 	rel_path = rel_path .. table.concat(sp_path, "/", i)
 
 	return rel_path
+end
+
+--- Convert given path to absolute path
+---@param path string
+---@return string
+M.get_abs_path = function(path)
+	if M.is_path_abs(path) then
+		return path
+	end
+
+	local abs_path = "/"
+	local cwd = vim.fn.getcwd()
+	local sp_cwd = vim.tbl_filter(non_empty, vim.split(cwd, "/"))
+	local sp_path = vim.tbl_filter(non_empty, vim.split(path, "/"))
+	local len_cwd = #sp_cwd + 1
+	local len_path = #sp_path + 1
+	local i = 1
+
+	-- get number of "../"
+	while i < len_path do
+		if sp_path[i] ~= ".." then
+			break
+		end
+		i = i + 1
+	end
+
+	--- remove trailing parents from "cwd"
+	abs_path = abs_path .. table.concat(sp_cwd, "/", 1, len_cwd - i)
+	if abs_path == "/" then
+		abs_path = ""
+	end
+
+	-- append remaining parents from "path"
+	abs_path = abs_path .. "/" .. table.concat(sp_path, "/", i)
+	return abs_path
+end
+
+--- Get parent of given path
+---@param path string
+---@return string
+M.get_path_parent = function(path)
+	local sp_path = vim.tbl_filter(non_empty, vim.split(path, "/"))
+	local parent = ""
+
+	if M.is_path_abs(path) then
+		parent = "/"
+	end
+
+	parent = parent .. table.concat(sp_path, "/", 1, #sp_path - 1)
+	print(parent)
+	return parent
 end
 
 return M

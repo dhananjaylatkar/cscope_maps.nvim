@@ -2,6 +2,7 @@ local RC = require("cscope_maps.utils.ret_codes")
 local log = require("cscope_maps.utils.log")
 local helper = require("cscope_maps.utils.helper")
 local utils = require("cscope_maps.utils")
+local db = require("cscope.db")
 
 local M = {}
 
@@ -54,8 +55,6 @@ for k, v in pairs(M.op_s_n) do
 end
 
 local cscope_picker = nil
-local project_root = nil
-local db_cons = {}
 
 M.help = function()
 	print([[
@@ -81,14 +80,6 @@ help : Show this message              (Usage: help)
 ]])
 end
 
---- if opts.db_file is a table then return 1st item
-M.get_db_file = function()
-	if type(M.opts.db_file) == "table" then
-		return M.opts.db_file[1]
-	end
-	return M.opts.db_file
-end
-
 M.push_tagstack = function()
 	local from = { vim.fn.bufnr("%"), vim.fn.line("."), vim.fn.col("."), 0 }
 	local items = { { tagname = vim.fn.expand("<cword>"), from = from } }
@@ -108,26 +99,17 @@ M.push_tagstack = function()
 	vim.fn.settagstack(vim.fn.win_getid(), { items = items }, "t")
 end
 
-M.parse_line = function(line)
+M.parse_line = function(line, db_rel)
 	local t = {}
 
 	-- Populate t with filename, context and linenumber
 	local sp = vim.split(line, "%s+")
 
 	t.filename = sp[1]
-	if M.opts.picker == "telescope" then
-		-- telescope can't handle relative paths, always use abs paths
-		if vim.startswith(t.filename, "..") then
-			t.filename = utils.get_abs_path(t.filename)
-		end
-	else
-		t.filename = utils.get_rel_path(vim.fn.getcwd(), t.filename)
+	if db_rel then
+		t.filename = vim.fs.joinpath(db_rel, t.filename)
 	end
-
-	-- update path if project_rooter is enabled
-	if M.opts.project_rooter.enable and not M.opts.project_rooter.change_cwd and project_root ~= nil then
-		t.filename = project_root .. "/" .. t.filename
-	end
+	t.filename = utils.get_rel_path(vim.fn.getcwd(), t.filename)
 
 	t.ctx = sp[2]
 	t.lnum = sp[3]
@@ -149,14 +131,14 @@ M.parse_line = function(line)
 	return t
 end
 
-M.parse_output = function(cs_out)
+M.parse_output = function(cs_out, db_rel)
 	-- Parse cscope output to be populated in QuickFix List
 	-- setqflist() takes list of dicts to be shown in QF List. See :h setqflist()
 
 	local res = {}
 
 	for line in string.gmatch(cs_out, "([^\n]+)") do
-		local parsed_line = M.parse_line(line)
+		local parsed_line = M.parse_line(line, db_rel)
 		table.insert(res, parsed_line)
 	end
 
@@ -193,44 +175,25 @@ M.cmd_exec = function(cmd)
 	return output
 end
 
-M.get_db_and_rel_path = function(db_item)
-	local sp_db_item = vim.split(db_item, ":")
-	local db_file = sp_db_item[1]
-	local db_rel = sp_db_item[2] or ""
-
-	if db_rel == "." or db_rel == "./" then
-		db_rel = ""
-	end
-
-	return db_file, db_rel
-end
-
 M.get_result = function(op_n, op_s, symbol, hide_log)
 	-- Executes cscope search and return parsed output
 
-	local db_item = vim.g.cscope_maps_db_file or M.opts.db_file
+	local db_conns = db.all_conns()
 	local cmd = string.format("%s -dL -%s %s", M.opts.exec, op_n, symbol)
 	local out = ""
+	local any_res = false
+	local res = {}
 
 	if M.opts.exec == "cscope" then
-		if type(db_item) == "string" then
-			local db_file, db_rel = M.get_db_and_rel_path(db_item)
+		for _, db_con in ipairs(db_conns) do
+			local db_file, db_rel = db_con.file, db_con.rel
 			if vim.loop.fs_stat(db_file) ~= nil then
-				cmd = string.format("%s -f %s", cmd, db_file)
-				if db_rel ~= "" then
-					cmd = cmd .. string.format(" -P %s", db_rel)
-				end
-				out = M.cmd_exec(cmd)
-			end
-		else -- table
-			for _, db in ipairs(db_item) do
-				local db_file, db_rel = M.get_db_and_rel_path(db)
-				if vim.loop.fs_stat(db_file) ~= nil then
-					local _cmd = string.format("%s -f %s", cmd, db_file)
-					if db_rel ~= "" then
-						_cmd = _cmd .. string.format(" -P %s", db_rel)
-					end
-					out = string.format("%s%s", out, M.cmd_exec(_cmd))
+				local _cmd = string.format("%s -f %s", cmd, db_file)
+				print(_cmd)
+				out = M.cmd_exec(_cmd)
+				if out ~= "" then
+					any_res = true
+					res = vim.tbl_deep_extend("keep", res, M.parse_output(out, db_rel))
 				end
 			end
 		end
@@ -250,12 +213,12 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 		return RC.INVALID_EXEC, nil
 	end
 
-	if out == "" then
+	if any_res == false then
 		log.warn("no results for 'cscope find " .. op_s .. " " .. symbol .. "'", hide_log)
 		return RC.NO_RESULTS, nil
 	end
 
-	return RC.SUCCESS, M.parse_output(out)
+	return RC.SUCCESS, res
 end
 
 M.find = function(op, symbol)
@@ -318,12 +281,10 @@ M.db_build = function()
 	local stdout = vim.loop.new_pipe(false)
 	local stderr = vim.loop.new_pipe(false)
 	local db_build_cmd_args = vim.tbl_deep_extend("force", M.opts.db_build_cmd_args, {})
-	local cur_path = vim.fn.expand("%:p:h", true)
-	local db_file, db_rel = M.get_db_and_rel_path(M.get_db_file())
-
-	if db_rel ~= "" then
-		log.warn("db build is not supported for rel-path")
-	end
+	local cur_path = vim.fn.getcwd()
+	local db_conn = db.primary_conn() -- TODO: extend support to all db conns
+	local db_file = db_conn.file
+	local db_root = utils.get_path_parent(db_file)
 
 	if vim.g.cscope_maps_statusline_indicator then
 		log.warn("db build is already in progress")
@@ -335,9 +296,7 @@ M.db_build = function()
 		table.insert(db_build_cmd_args, db_file)
 	end
 
-	if M.opts.project_rooter.enable and not M.opts.project_rooter.change_cwd and project_root ~= nil then
-		vim.cmd("cd " .. project_root)
-	end
+	vim.cmd("cd " .. db_root)
 
 	local handle = nil
 	vim.g.cscope_maps_statusline_indicator = M.opts.statusline_indicator or M.opts.exec
@@ -359,48 +318,25 @@ M.db_build = function()
 				log.warn("database build failed")
 			end
 			vim.g.cscope_maps_statusline_indicator = nil
-			if M.opts.project_rooter.enable and not M.opts.project_rooter.change_cwd and project_root ~= nil then
-				vim.cmd("cd " .. cur_path)
-			end
+			vim.cmd("cd " .. cur_path)
 		end)
 	)
 	vim.loop.read_start(stdout, M.db_build_output)
 	vim.loop.read_start(stderr, M.db_build_output)
 end
 
-M.db_register_con = function (path)
-	local sp_path = vim.split(path, ":")
-	local file = sp_path[1]
-	local rel = sp_path[2]
-
-	table.insert(db_cons, {file = file, rel = rel})
-end
-
 M.db_update = function(op, files)
-	if type(M.opts.db_file) == "string" then
-		M.opts.db_file = { M.opts.db_file }
-	end
-
 	if op == "a" then
 		for _, f in ipairs(files) do
-			if not vim.tbl_contains(M.opts.db_file, f) then
-				table.insert(M.opts.db_file, f)
-			end
+			db.add(f)
 		end
 	elseif op == "r" then
-		local rm_keys = {}
-		for i, db in ipairs(M.opts.db_file) do
-			if vim.tbl_contains(files, db) then
-				table.insert(rm_keys, 1, i)
-			end
-		end
-		for _, v in ipairs(rm_keys) do
-			if v ~= 1 then
-				table.remove(M.opts.db_file, v)
-			end
+		for _, f in ipairs(files) do
+			db.remove(f)
 		end
 	end
-	log.warn("updateed DB list: " .. vim.inspect(M.opts.db_file))
+	-- TODO: add proper print
+	log.warn("updateed DB list: " .. vim.inspect(db.all_conns()))
 end
 
 M.run = function(args)
@@ -452,7 +388,8 @@ M.run = function(args)
 
 			M.db_update(op, files)
 		elseif op == "s" then
-			log.warn("current DB list: " .. vim.inspect(M.opts.db_file))
+			-- TODO: use proper print
+			log.warn("current DB list: " .. vim.inspect(db.all_conns()))
 		else
 			log.warn("invalid operation")
 		end
@@ -511,31 +448,6 @@ M.user_command = function()
 	})
 end
 
---- returns parent dir where db_file is present
-M.project_root = function(db_file)
-	local path = vim.fn.expand("%:p:h", true)
-
-	while true do
-		if path == "" then
-			path = "/"
-		end
-		if vim.loop.fs_stat(path .. "/" .. db_file) ~= nil then
-			return path
-		end
-		if vim.fn.has("win32") then
-			if path:len() <= 2 then
-				return nil
-			end
-			path = path:match("^(.*)[/\\]")
-		else
-			if path == "/" then
-				return nil
-			end
-			path = path:match("^(.*)/")
-		end
-	end
-end
-
 ---Initialization API for inbuilt cscope
 ---Used for neovim < 0.9
 M.legacy_setup = function()
@@ -572,19 +484,26 @@ M.setup = function(opts)
 	vim.g.cscope_maps_db_file = nil
 	vim.g.cscope_maps_statusline_indicator = nil
 
+	if type(M.opts.db_file) == "string" then
+		db.add(M.opts.db_file)
+	else -- table
+		for _, f in ipairs(M.opts.db_file) do
+			db.add(f)
+		end
+	end
+
+	-- if project rooter is enabled,
+	-- 1. get root of project and update primary conn
+	-- 2. if change_cwd is enabled, change into it (?)
 	if M.opts.project_rooter.enable then
-		local db_file, _ = M.get_db_and_rel_path(M.get_db_file())
-		project_root = M.project_root(db_file)
-		if project_root ~= nil then
-			local new_db_path = string.format("%s/%s", project_root, db_file)
-			if type(M.opts.db_file) == "string" then
-				M.opts.db_file = new_db_path
-			else -- table
-				M.opts.db_file[1] = new_db_path
-			end
+		local primary_conn = db.primary_conn()
+		local root = vim.fs.root(0, primary_conn.file)
+		print("root" .. root)
+		if root then
+			db.update_primary_conn(vim.fs.joinpath(root, primary_conn.file), root)
 
 			if M.opts.project_rooter.change_cwd then
-				vim.cmd("cd " .. project_root)
+				vim.cmd("cd " .. root)
 			end
 		end
 	end

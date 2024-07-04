@@ -46,6 +46,7 @@ end
 M.run = function(opts)
 	opts = opts or {}
 	opts.entry_maker = entry_maker
+	-- print(vim.inspect(opts.cscope))
 	prepare(opts.cscope.parsed_output, opts.cscope.prompt_title)
 
 	pickers

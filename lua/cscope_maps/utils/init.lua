@@ -55,47 +55,19 @@ M.get_abs_path = function(path)
 		return path
 	end
 
-	local abs_path = "/"
-	local cwd = vim.fn.getcwd()
-	local sp_cwd = vim.tbl_filter(non_empty, vim.split(cwd, "/"))
-	local sp_path = vim.tbl_filter(non_empty, vim.split(path, "/"))
-	local len_cwd = #sp_cwd + 1
-	local len_path = #sp_path + 1
-	local i = 1
+	local abs_path = vim.fs.joinpath(vim.fn.getcwd(), path)
 
-	-- get number of "../"
-	while i < len_path do
-		if sp_path[i] ~= ".." then
-			break
-		end
-		i = i + 1
-	end
-
-	--- remove trailing parents from "cwd"
-	abs_path = abs_path .. table.concat(sp_cwd, "/", 1, len_cwd - i)
-	if abs_path == "/" then
-		abs_path = ""
-	end
-
-	-- append remaining parents from "path"
-	abs_path = abs_path .. "/" .. table.concat(sp_path, "/", i)
-	return abs_path
+	return vim.fs.normalize(abs_path)
 end
 
 --- Get parent of given path
 ---@param path string
----@return string
+---@return string|nil
 M.get_path_parent = function(path)
-	local sp_path = vim.tbl_filter(non_empty, vim.split(path, "/"))
-	local parent = ""
-
-	if M.is_path_abs(path) then
-		parent = "/"
+	for parent in vim.fs.parents(path) do
+		return parent
 	end
-
-	parent = parent .. table.concat(sp_path, "/", 1, #sp_path - 1)
-	print(parent)
-	return parent
+	return nil
 end
 
 return M

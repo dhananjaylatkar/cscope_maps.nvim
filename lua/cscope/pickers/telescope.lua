@@ -26,7 +26,7 @@ local entry_maker = function(entry)
 			end
 		end,
 		ordinal = entry["filename"] .. entry["text"],
-		path = entry["filename"],
+		path = cs_utils.get_abs_path(entry["filename"]),
 		lnum = tonumber(entry["lnum"]),
 	}
 end

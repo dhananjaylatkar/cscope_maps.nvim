@@ -335,8 +335,6 @@ M.db_update = function(op, files)
 			db.remove(f)
 		end
 	end
-	-- TODO: add proper print
-	log.warn("updateed DB list: " .. vim.inspect(db.all_conns()))
 end
 
 M.run = function(args)
@@ -388,8 +386,7 @@ M.run = function(args)
 
 			M.db_update(op, files)
 		elseif op == "s" then
-			-- TODO: use proper print
-			log.warn("current DB list: " .. vim.inspect(db.all_conns()))
+			db.print_conns()
 		else
 			log.warn("invalid operation")
 		end

@@ -43,15 +43,16 @@ CSCOPE ~
 CSCOPE DB ~
 
 - No need to add cscope database, it is automatically picked from current directory or `db_file` option.
-- `:Cscope db add <space sepatated files>` add db file(s) to cscope search.
-- `:Cscope db rm <space sepatated files>` remove db file(s) from cscope search.
-- `:Cscope db build` builds cscope db of primary db.
+- `:Cs db add <space sepatated files>` add db file(s) to cscope search.
+- `:Cs db rm <space sepatated files>` remove db file(s) from cscope search.
+- `:Cs db show` show all db connections.
+- `:Cs db build` builds cscope db of primary db.
 - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
 - DB path grammar
     - `db_file:db_pre_path` db_pre_path (prefix path) will be appended to cscope results.
-    - e.g. `Cscope db add ~/cscope.out:/home/code/proj2` => results from `~/cscope.out` will be prefixed with `/home/code/proj2/`
+    - e.g. `:Cs db add ~/cscope.out:/home/code/proj2` => results from `~/cscope.out` will be prefixed with `/home/code/proj2/`
     - `@` can be used to indicate that parent of `db_file` is `db_pre_path`.
-    - e.g. `Cscope db add ../proj2/cscope.out:@` => results from `../proj2/cscope.out` will be prefixed with `../proj2/`
+    - e.g. `:Cs db add ../proj2/cscope.out:@` => results from `../proj2/cscope.out` will be prefixed with `../proj2/`
 
 
 STACK VIEW ~

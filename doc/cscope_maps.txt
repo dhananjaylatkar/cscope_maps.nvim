@@ -1,4 +1,4 @@
-*cscope_maps.txt*        For Neovim >= v0.10.0       Last change: 2024 June 01
+*cscope_maps.txt*        For Neovim >= v0.10.0       Last change: 2024 July 06
 
 ==============================================================================
 Table of Contents                              *cscope_maps-table-of-contents*
@@ -31,18 +31,28 @@ CSCOPE ~
 - Tries to mimic vim’s builtin cscope functionality.
 - Provides user command, `:Cscope` which acts same as good old `:cscope`.
 - Short commands are supported. e.g. `:Cs f g main`
-- No need to add cscope database (`:cscope add <file>`), it is automatically picked from current directory or `db_file` option.
 - Keymaps can be disabled using `disable_maps` option.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 - `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
-- `:Cscope build` builds cscope db
-    - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
-- `:Cscope db add <space sepatated files>` add db file(s) to cscope search
-- `:Cscope db rm <space sepatated files>` remove db file(s) from cscope search
 - For `nvim < 0.9`, legacy cscope will be used. It will support keymaps. It won’t have all the niceties of lua port.
 - Opens results in quickfix, **telescope**, or **fzf-lua**.
 - Has which-key.nvim <https://github.com/folke/which-key.nvim> hints.
 - See |cscope_maps-this-section| for `vim-gutentags`.
+
+
+CSCOPE DB ~
+
+- Statically provide table of db paths in config (`db_file`) OR add them at runtime using `:Cs db add ...`
+- `:Cs db add <space sepatated files>` add db file(s) to cscope search.
+- `:Cs db rm <space sepatated files>` remove db file(s) from cscope search.
+- `:Cs db show` show all db connections.
+- `:Cs db build` (re)builds db for primary db.
+- `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
+- DB path grammar
+    - `db_file:db_pre_path` db_pre_path (prefix path) will be appended to cscope results.
+    - e.g. `:Cs db add ~/cscope.out:/home/code/proj2` => results from `~/cscope.out` will be prefixed with `/home/code/proj2/`
+    - `@` can be used to indicate that parent of `db_file` is `db_pre_path`.
+    - e.g. `:Cs db add ../proj2/cscope.out:@` => results from `../proj2/cscope.out` will be prefixed with `../proj2/`
 
 
 STACK VIEW ~
@@ -102,8 +112,6 @@ _cscope_maps_ comes with following defaults:
                                   --   when table of DBs is provided -
                                   --   first DB is "primary" and others are "secondary"
                                   --   primary DB is used for build and project_rooter
-                                  --   secondary DBs must be built with absolute paths
-                                  --   or paths relative to cwd. Otherwise JUMP will not work.
         -- cscope executable
         exec = "cscope", -- "cscope" or "gtags-cscope"
         -- choose your fav picker

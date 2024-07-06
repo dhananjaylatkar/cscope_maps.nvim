@@ -99,15 +99,15 @@ M.push_tagstack = function()
 	vim.fn.settagstack(vim.fn.win_getid(), { items = items }, "t")
 end
 
-M.parse_line = function(line, db_rel)
+M.parse_line = function(line, db_pre_path)
 	local t = {}
 
 	-- Populate t with filename, context and linenumber
 	local sp = vim.split(line, "%s+")
 
 	t.filename = sp[1]
-	if db_rel then
-		t.filename = vim.fs.joinpath(db_rel, t.filename)
+	if db_pre_path then
+		t.filename = vim.fs.joinpath(db_pre_path, t.filename)
 	end
 	t.filename = utils.get_rel_path(vim.fn.getcwd(), t.filename)
 
@@ -131,14 +131,14 @@ M.parse_line = function(line, db_rel)
 	return t
 end
 
-M.parse_output = function(cs_out, db_rel)
+M.parse_output = function(cs_out, db_pre_path)
 	-- Parse cscope output to be populated in QuickFix List
 	-- setqflist() takes list of dicts to be shown in QF List. See :h setqflist()
 
 	local res = {}
 
 	for line in string.gmatch(cs_out, "([^\n]+)") do
-		local parsed_line = M.parse_line(line, db_rel)
+		local parsed_line = M.parse_line(line, db_pre_path)
 		table.insert(res, parsed_line)
 	end
 
@@ -186,14 +186,14 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 
 	if M.opts.exec == "cscope" then
 		for _, db_con in ipairs(db_conns) do
-			local db_file, db_rel = db_con.file, db_con.rel
+			local db_file, db_pre_path = db_con.file, db_con.pre_path
 			if vim.loop.fs_stat(db_file) ~= nil then
 				local _cmd = string.format("%s -f %s", cmd, db_file)
 				print(_cmd)
 				out = M.cmd_exec(_cmd)
 				if out ~= "" then
 					any_res = true
-					res = vim.tbl_deep_extend("keep", res, M.parse_output(out, db_rel))
+					res = vim.tbl_deep_extend("keep", res, M.parse_output(out, db_pre_path))
 				end
 			end
 		end

@@ -15,18 +15,26 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - Tries to mimic vim's builtin cscope functionality.
 - Provides user command, `:Cscope` which acts same as good old `:cscope`.
 - Short commands are supported. e.g. `:Cs f g main`
-- No need to add cscope database (`:cscope add <file>`), it is automatically picked from current directory or `db_file` option.
 - Keymaps can be disabled using `disable_maps` option.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 - `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
-- `:Cscope build` builds cscope db
-  - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
-- `:Cscope db add <space sepatated files>` add db file(s) to cscope search
-- `:Cscope db rm <space sepatated files>` remove db file(s) from cscope search
 - For `nvim < 0.9`, legacy cscope will be used. It will support keymaps. It won't have all the niceties of lua port.
 - Opens results in quickfix, **telescope**, or **fzf-lua**.
 - Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints.
 - See [this section](#vim-gutentags) for `vim-gutentags`.
+
+### Cscope DB
+
+- No need to add cscope database, it is automatically picked from current directory or `db_file` option.
+- `:Cscope db add <space sepatated files>` add db file(s) to cscope search.
+- `:Cscope db rm <space sepatated files>` remove db file(s) from cscope search.
+- `:Cscope db build` builds cscope db of primary db.
+- `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
+- DB path grammar
+  - `db_file:db_pre_path` db_pre_path (prefix path) will be appended to cscope results.
+  - `@` can be used to indicate that parent of `db_file` is `db_pre_path`.
+  - e.g. `Cscope db add ../proj2/cscope.out:@` => results from `../proj2/cscope.out` will be prefixed with `../proj2/`
+  - e.g. `Cscope db add ~/cscope.out:/home/code/proj2` => results from `~/cscope.out` will be prefixed with `/home/code/proj2/`
 
 ### Stack View
 

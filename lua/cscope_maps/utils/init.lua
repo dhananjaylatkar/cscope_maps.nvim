@@ -1,10 +1,6 @@
 local M = {}
 
-local non_empty = function(item)
-	return item and item ~= "" and item ~= "."
-end
-
---- Check is given path is absolute path
+--- Check if given path is absolute path
 ---@param path string
 ---@return boolean
 M.is_path_abs = function(path)
@@ -23,8 +19,8 @@ M.get_rel_path = function(rel_to, path)
 	end
 
 	local rel_path = ""
-	local sp_rel_to = vim.tbl_filter(non_empty, vim.split(rel_to, "/"))
-	local sp_path = vim.tbl_filter(non_empty, vim.split(path, "/"))
+	local sp_rel_to = vim.split(vim.fs.normalize(rel_to), "/")
+	local sp_path = vim.split(vim.fs.normalize(path), "/")
 	local len_rel_to = #sp_rel_to + 1
 	local len_path = #sp_path + 1
 	local i = 1

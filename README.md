@@ -25,11 +25,11 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
 ### Cscope DB
 
-- No need to add cscope database, it is automatically picked from current directory or `db_file` option.
+- Statically provide table of db paths in config (`db_file`) OR add them at runtime using `:Cs db add ...`
 - `:Cs db add <space sepatated files>` add db file(s) to cscope search.
 - `:Cs db rm <space sepatated files>` remove db file(s) from cscope search.
 - `:Cs db show` show all db connections.
-- `:Cs db build` builds cscope db of primary db.
+- `:Cs db build` (re)builds db for primary db.
 - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
 - DB path grammar
   - `db_file:db_pre_path` db_pre_path (prefix path) will be appended to cscope results.
@@ -91,8 +91,6 @@ _cscope_maps_ comes with following defaults:
                               --   when table of DBs is provided -
                               --   first DB is "primary" and others are "secondary"
                               --   primary DB is used for build and project_rooter
-                              --   secondary DBs must be built with absolute paths
-                              --   or paths relative to cwd. Otherwise JUMP will not work.
     -- cscope executable
     exec = "cscope", -- "cscope" or "gtags-cscope"
     -- choose your fav picker

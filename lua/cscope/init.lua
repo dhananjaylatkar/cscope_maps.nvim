@@ -189,7 +189,6 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 			local db_file, db_pre_path = db_con.file, db_con.pre_path
 			if vim.loop.fs_stat(db_file) ~= nil then
 				local _cmd = string.format("%s -f %s", cmd, db_file)
-				print(_cmd)
 				out = M.cmd_exec(_cmd)
 				if out ~= "" then
 					any_res = true
@@ -494,8 +493,7 @@ M.setup = function(opts)
 	-- 2. if change_cwd is enabled, change into it (?)
 	if M.opts.project_rooter.enable then
 		local primary_conn = db.primary_conn()
-		local root = vim.fs.root(0, primary_conn.file)
-		print("root" .. root)
+		local root = vim.fs.root(vim.fn.getcwd(), primary_conn.file)
 		if root then
 			db.update_primary_conn(vim.fs.joinpath(root, primary_conn.file), root)
 

@@ -151,6 +151,9 @@ M.open_picker = function(op_s, symbol, parsed_output)
 	-- Push current symbol on tagstack
 	M.push_tagstack()
 
+	-- update jumplist
+	vim.cmd([[normal! m']])
+
 	if M.opts.skip_picker_for_single_result and #parsed_output == 1 then
 		vim.api.nvim_command("edit +" .. parsed_output[1]["lnum"] .. " " .. parsed_output[1]["filename"])
 		return RC.SUCCESS

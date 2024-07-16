@@ -19,7 +19,7 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 - `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
 - For `nvim < 0.9`, legacy cscope will be used. It will support keymaps. It won't have all the niceties of lua port.
-- Opens results in quickfix, **telescope**, or **fzf-lua**.
+- Display results in quickfix, **telescope**, **fzf-lua** or **mini.pick**.
 - Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints.
 - See [this section](#vim-gutentags) for `vim-gutentags`.
 
@@ -61,7 +61,8 @@ Following example uses [lazy.nvim](https://github.com/folke/lazy.nvim)
     "folke/which-key.nvim", -- optional [for whichkey hints]
     "nvim-telescope/telescope.nvim", -- optional [for picker="telescope"]
     "ibhagwan/fzf-lua", -- optional [for picker="fzf-lua"]
-    "nvim-tree/nvim-web-devicons", -- optional [for devicons in telescope or fzf]
+    "echasnovski/mini.pick" -- optional [for picker="mini-pick"]
+    "nvim-tree/nvim-web-devicons", -- optional [for devicons in telescope, fzf or mini.pick]
   },
   opts = {
     -- USE EMPTY FOR DEFAULT OPTIONS
@@ -94,7 +95,7 @@ _cscope_maps_ comes with following defaults:
     -- cscope executable
     exec = "cscope", -- "cscope" or "gtags-cscope"
     -- choose your fav picker
-    picker = "quickfix", -- "telescope", "fzf-lua" or "quickfix"
+    picker = "quickfix", -- "quickfix", "telescope", "fzf-lua" or "mini-pick"
     -- size of quickfix window
     qf_window_size = 5, -- any positive integer
     -- position of quickfix window

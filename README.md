@@ -4,9 +4,14 @@ For old school code navigation :)
 
 Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
-**Adds `cscope` support for [Neovim](https://neovim.io/) 0.9+**
+**Adds `cscope` support for [Neovim](https://neovim.io/)**
 
 [cscope_maps.nvim.v2.webm](https://github.com/dhananjaylatkar/cscope_maps.nvim/assets/27724944/7ab4d902-fe6d-4914-bff6-353136c72803)
+
+## Requirements
+
+- Neovim >= 0.10
+- [cscope](https://sourceforge.net/projects/cscope/files/)
 
 ## Features
 
@@ -18,7 +23,6 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - Keymaps can be disabled using `disable_maps` option.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 - `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
-- For `nvim < 0.9`, legacy cscope will be used. It will support keymaps. It won't have all the niceties of lua port.
 - Display results in quickfix, **telescope**, **fzf-lua** or **mini.pick**.
 - Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints.
 - See [this section](#vim-gutentags) for `vim-gutentags`.

@@ -1,20 +1,4 @@
 local M = {}
-local map = vim.keymap.set
-
-M.ver = vim.version()
-
-M.legacy_cscope = function()
-	-- cscope is removed from nvim 0.9+
-	return M.ver.major == 0 and M.ver.minor < 9
-end
-
-M.run_cscope_command = function(cmd)
-	vim.api.nvim_command(cmd)
-	if M.legacy_cscope() then
-		print(cmd)
-		vim.api.nvim_command("copen")
-	end
-end
 
 -- define key table for input strings
 M.sym_map = {
@@ -44,6 +28,7 @@ M.get_cscope_prompt_cmd = function(operation, selection)
 end
 
 M.default_keymaps = function(prefix)
+	local map = vim.keymap.set
 	local sym_map = M.sym_map
 	local ok, wk = pcall(require, "which-key")
 	if ok then
@@ -63,16 +48,7 @@ M.default_keymaps = function(prefix)
 	map("n", prefix .. "d", M.get_cscope_prompt_cmd("d", "w"), { desc = sym_map.d })
 	map("n", prefix .. "a", M.get_cscope_prompt_cmd("a", "w"), { desc = sym_map.a })
 	map("n", prefix .. "b", "<cmd>Cscope db build<cr>", { desc = sym_map.b })
-end
-
-M.init_keymaps = function(prefix)
-	if not M.legacy_cscope() then
-		map("n", "<C-]>",
-			[[<cmd>exe "Cstag" expand("<cword>")<cr>]],
-			{ noremap = true, silent = true, desc = "ctag" })
-	end
-
-	M.default_keymaps(prefix)
+	map("n", "<C-]>", [[<cmd>exe "Cstag" expand("<cword>")<cr>]], { noremap = true, silent = true, desc = "ctag" })
 end
 
 return M

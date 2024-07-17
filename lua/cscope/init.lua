@@ -447,32 +447,6 @@ M.user_command = function()
 	})
 end
 
----Initialization API for inbuilt cscope
----Used for neovim < 0.9
-M.legacy_setup = function()
-	-- use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
-	vim.opt.cscopetag = true
-	-- check cscope for definition of a symbol before checking ctags: set to 1
-	-- if you want the reverse search order.
-	vim.opt.csto = 0
-	-- show msg when cscope db added
-	vim.opt.cscopeverbose = true
-	-- results in quickfix window
-	vim.opt.cscopequickfix = "s-,g-,c-,t-,e-,f-,i-,d-,a-"
-
-	if type(M.opts.db_file) == "table" then
-		for _, db in ipairs(M.opts.db_file) do
-			if vim.loop.fs_stat(db) ~= nil then
-				vim.api.nvim_command("cs add " .. db)
-			end
-		end
-	else -- string
-		if vim.loop.fs_stat(M.opts.db_file) ~= nil then
-			vim.api.nvim_command("cs add " .. M.opts.db_file)
-		end
-	end
-end
-
 ---Initialization api
 ---@param opts CsConfig
 M.setup = function(opts)
@@ -506,12 +480,8 @@ M.setup = function(opts)
 		end
 	end
 
-	if helper.legacy_cscope() then
-		M.legacy_setup()
-	else
-		cscope_picker = require("cscope.pickers." .. M.opts.picker)
-		M.user_command()
-	end
+	cscope_picker = require("cscope.pickers." .. M.opts.picker)
+	M.user_command()
 end
 
 return M

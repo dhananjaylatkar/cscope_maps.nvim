@@ -1,9 +1,10 @@
-*cscope_maps.txt*        For Neovim >= v0.10.0       Last change: 2024 July 16
+*cscope_maps.txt*        For Neovim >= v0.10.0       Last change: 2024 July 17
 
 ==============================================================================
 Table of Contents                              *cscope_maps-table-of-contents*
 
 1. cscope_maps.nvim                             |cscope_maps-cscope_maps.nvim|
+  - Requirements                   |cscope_maps-cscope_maps.nvim-requirements|
   - Features                           |cscope_maps-cscope_maps.nvim-features|
   - Installation                   |cscope_maps-cscope_maps.nvim-installation|
   - Configuration                 |cscope_maps-cscope_maps.nvim-configuration|
@@ -17,10 +18,16 @@ For old school code navigation :)
 
 Heavily inspired by emacs’ xcscope.el <https://github.com/dkogan/xcscope.el>.
 
-**Adds cscope support for Neovim 0.9+**
+**Adds cscope support for Neovim**
 
 cscope_maps.nvim.v2.webm
 <https://github.com/dhananjaylatkar/cscope_maps.nvim/assets/27724944/7ab4d902-fe6d-4914-bff6-353136c72803>
+
+
+REQUIREMENTS                       *cscope_maps-cscope_maps.nvim-requirements*
+
+- Neovim >= 0.10
+- cscope <https://sourceforge.net/projects/cscope/files/>
 
 
 FEATURES                               *cscope_maps-cscope_maps.nvim-features*
@@ -34,7 +41,6 @@ CSCOPE ~
 - Keymaps can be disabled using `disable_maps` option.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 - `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
-- For `nvim < 0.9`, legacy cscope will be used. It will support keymaps. It won’t have all the niceties of lua port.
 - Display results in quickfix, **telescope**, **fzf-lua** or **mini.pick**.
 - Has which-key.nvim <https://github.com/folke/which-key.nvim> hints.
 - See |cscope_maps-this-section| for `vim-gutentags`.

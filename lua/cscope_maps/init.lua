@@ -1,5 +1,4 @@
 local helper = require("cscope_maps.utils.helper")
-local sv = require("cscope.stack_view")
 local M = {}
 
 ---@class CsMapsConfig
@@ -14,48 +13,38 @@ M.opts = {
 	cscope = {}, -- defaults are in cscope.lua
 }
 
+-- function to print xcscpoe.el like prompts
+M.cscope_prompt = function(operation, default_symbol)
+	if M.opts.skip_input_prompt then
+		vim.cmd.Cscope({ args = { "find", operation, default_symbol } })
+	else
+		local prompt = string.format("%s (default: '%s'): ", helper.sym_map[operation], default_symbol)
+		vim.ui.input({ prompt = prompt }, function(new_symbol)
+			if new_symbol == nil then
+				return
+			end
+			if new_symbol ~= "" then
+				vim.cmd.Cscope({ args = { "find", operation, new_symbol } })
+			else
+				vim.cmd.Cscope({ args = { "find", operation, default_symbol } })
+			end
+		end)
+	end
+end
+
 ---Initialization api
 ---@param opts CsMapsConfig
 M.setup = function(opts)
 	opts = opts or {}
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
 
-	local cscope = "Cscope"
-
-	if helper.legacy_cscope() then
-		cscope = "cscope"
+	if not M.opts.disable_maps then
+		-- Mappings
+		helper.default_keymaps(M.opts.prefix)
 	end
 
 	require("cscope").setup(M.opts.cscope)
-
-	-- function to print xcscpoe.el like prompts
-	M.cscope_prompt = function(operation, default_symbol)
-		local cmd = cscope .. " find " .. operation
-		if M.opts.skip_input_prompt then
-			cmd = cmd .. " " .. default_symbol
-			helper.run_cscope_command(cmd)
-		else
-			local prompt = helper.sym_map[operation] .. " (default: '" .. default_symbol .. "'): "
-			vim.ui.input({ prompt = prompt }, function(new_symbol)
-				if new_symbol == nil then
-					return
-				end
-				if new_symbol ~= "" then
-					cmd = cmd .. " " .. new_symbol
-				else
-					cmd = cmd .. " " .. default_symbol
-				end
-				helper.run_cscope_command(cmd)
-			end)
-		end
-	end
-
-	if not M.opts.disable_maps then
-		-- Mappings
-		helper.init_keymaps(M.opts.prefix)
-	end
-
-	sv.setup()
+	require("cscope.stack_view").setup()
 end
 
 return M

@@ -102,7 +102,6 @@ M.get_dirs_in_dir = function(dir)
 
 	-- return only dirs
 	return vim.tbl_filter(function(x)
-		print(vim.fn.isdirectory(x))
 		return vim.fn.isdirectory(x) == 1
 	end, fs_entries)
 end

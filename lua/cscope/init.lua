@@ -417,8 +417,58 @@ M.cmd_cmp = function(_, line)
 		end
 
 		if short_cmd == "d" then
-			return { "build", "add", "rm", "show" }
+			cmds = { "build", "add", "rm", "show" }
+			return vim.tbl_filter(function(val)
+				return vim.startswith(val, l[3])
+			end, cmds)
 		end
+	end
+
+	local short_cmd2 = l[3]:sub(1, 1)
+	local cur_arg = l[#l]
+	if n >= 2 and short_cmd == "d" and short_cmd2 == "a" then
+		local sp = vim.split(cur_arg, ":")
+		local parent, fs_entries
+
+		if sp[2] ~= nil then
+			-- complete pre path.
+			-- this will show "@" and dirs only
+			parent = utils.get_path_parent(sp[2])
+			fs_entries = utils.get_dirs_in_dir(parent)
+			table.insert(fs_entries, 1, "@")
+
+			fs_entries = vim.tbl_map(function(x)
+				return sp[1] .. ":" .. x
+			end, fs_entries)
+		else
+			-- complete db path
+			-- this will show all files
+			parent = utils.get_path_parent(cur_arg)
+			fs_entries = utils.get_files_in_dir(parent)
+		end
+
+		return vim.tbl_filter(function(val)
+			return vim.startswith(val, cur_arg)
+		end, fs_entries)
+	end
+
+	if n >= 2 and short_cmd == "d" and short_cmd2 == "r" then
+		-- complete db_conns except primary_conn
+		local db_conns = db.all_conns()
+		local entries = {}
+		if not db_conns then
+			return entries
+		end
+
+		for i, conn in ipairs(db_conns) do
+			if i > 1 then
+				table.insert(entries, string.format("%s:%s", conn.file, conn.pre_path))
+			end
+		end
+
+		return vim.tbl_filter(function(val)
+			return vim.startswith(val, cur_arg)
+		end, entries)
 	end
 end
 

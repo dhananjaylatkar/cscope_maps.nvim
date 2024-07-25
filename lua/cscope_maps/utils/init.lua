@@ -58,12 +58,53 @@ end
 
 --- Get parent of given path
 ---@param path string
----@return string|nil
+---@return string
 M.get_path_parent = function(path)
 	for parent in vim.fs.parents(path) do
 		return parent
 	end
-	return nil
+	return ""
+end
+
+---Get all dirs and files in given path
+---@param dir string
+---@return table
+M.get_files_in_dir = function(dir)
+	local fs_entries = vim.fn.readdir(dir)
+
+	-- add "/" suffix for dirs and return
+	return vim.tbl_map(function(x)
+		local entry = x
+		if dir ~= "." then
+			entry = vim.fs.joinpath(dir, x)
+		end
+		if vim.fn.isdirectory(x) == 1 then
+			entry = entry .. "/"
+		end
+		return entry
+	end, fs_entries)
+end
+
+---Get all dirs in given path
+---@param dir string
+---@return table
+M.get_dirs_in_dir = function(dir)
+	local fs_entries = vim.fn.readdir(dir)
+
+	-- add "/" suffix for dirs
+	fs_entries = vim.tbl_map(function(x)
+		local entry = x
+		if dir ~= "." then
+			entry = vim.fs.joinpath(dir, x)
+		end
+		return entry .. "/"
+	end, fs_entries)
+
+	-- return only dirs
+	return vim.tbl_filter(function(x)
+		print(vim.fn.isdirectory(x))
+		return vim.fn.isdirectory(x) == 1
+	end, fs_entries)
 end
 
 return M

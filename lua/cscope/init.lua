@@ -210,6 +210,10 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 		end
 
 		out = M.cmd_exec(cmd)
+		if out ~= "" then
+			any_res = true
+			res = vim.tbl_deep_extend("keep", res, M.parse_output(out, db_pre_path))
+		end
 	else
 		log.warn("'" .. M.opts.exec .. "' executable is not supported", hide_log)
 		return RC.INVALID_EXEC, nil

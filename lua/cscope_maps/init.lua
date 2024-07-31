@@ -1,4 +1,5 @@
 local helper = require("cscope_maps.utils.helper")
+local cs = require("cscope")
 local M = {}
 
 ---@class CsMapsConfig
@@ -14,7 +15,8 @@ M.opts = {
 }
 
 -- function to print xcscpoe.el like prompts
-M.cscope_prompt = function(operation, default_symbol)
+M.cscope_prompt = function(operation)
+	local default_symbol = cs.default_sym(operation:sub(1, 1))
 	if M.opts.skip_input_prompt then
 		vim.cmd.Cscope({ args = { "find", operation, default_symbol } })
 	else
@@ -38,12 +40,21 @@ M.setup = function(opts)
 	opts = opts or {}
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
 
+	vim.api.nvim_create_user_command("CsPrompt", function(opts)
+		M.cscope_prompt(opts.fargs[1])
+	end, {
+		nargs = "*",
+		complete = function()
+			return vim.tbl_keys(cs.op_s_n)
+		end,
+	})
+
 	if not M.opts.disable_maps then
 		-- Mappings
 		helper.default_keymaps(M.opts.prefix)
 	end
 
-	require("cscope").setup(M.opts.cscope)
+	cs.setup(M.opts.cscope)
 	require("cscope.stack_view").setup()
 end
 

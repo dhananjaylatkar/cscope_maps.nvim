@@ -257,11 +257,10 @@ M.find = function(op, symbol)
 end
 
 M.cstag = function(symbol)
-	if symbol == nil then
-		return RC.INVALID_SYMBOL
-	end
-
 	local op = "g"
+	-- if symbol is not provided use cword
+	symbol = symbol or M.default_sym(op)
+
 	local ok, res = M.get_result(M.op_s_n[op], op, symbol, true)
 	if ok == RC.SUCCESS then
 		return M.open_picker(op, symbol, res)
@@ -343,6 +342,14 @@ M.db_update = function(op, files)
 	end
 end
 
+M.default_sym = function(op)
+	local arg = "<cword>"
+	if vim.tbl_contains({"f", "i", "7", "8"}, op) then
+		arg = "<cfile>"
+	end
+	return vim.fn.expand(arg)
+end
+
 M.run = function(args)
 	-- Parse top level input and call appropriate functions
 	local args_num = #args
@@ -355,13 +362,9 @@ M.run = function(args)
 	local cmd = args[1]
 
 	if cmd:sub(1, 1) == "f" then
-		if args_num < 3 then
-			log.warn("find command expects atleast 3 arguments")
-			return
-		end
-
 		local op = args[2]
-		local symbol = args[3]
+		-- if symbol is not provided use cword or cfile
+		local symbol = args[3] or M.default_sym(op)
 
 		-- collect all args
 		for i = 4, args_num do

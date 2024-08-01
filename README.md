@@ -19,10 +19,12 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
 - Tries to mimic vim's builtin cscope functionality.
 - Provides user command, `:Cscope` which acts same as good old `:cscope`.
-- Short commands are supported. e.g. `:Cs f g main`
-- Keymaps can be disabled using `disable_maps` option.
+- Short commands are supported. e.g. `:Cs f g <sym>`
+- `:Cstag <sym>` does `tags` search if no results are found in `cscope`.
+- Empty `<sym>` can be used in `:Cs` and `:Cstag` to pick `<cword>` as sym.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
-- `:Cstag <symbol>` does `tags` search if no results are found in `cscope`.
+- Keymaps can be disabled using `disable_maps` option.
+- `:CsPrompt <op>` can be used to invoke cscope prompt.
 - Display results in quickfix, **telescope**, **fzf-lua** or **mini.pick**.
 - Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints.
 - See [this section](#vim-gutentags) for `vim-gutentags`.
@@ -184,36 +186,24 @@ Disable default keymaps by setting `disable_maps = true`.
 
 There are 2 ways to add keymaps for `Cscope`.
 
-#### Using `cscope_prompt()` function
+#### Using `:CsPrompt` command
 
-`cscope_prompt(operation, default_symbol)` is exposed to user.
-This function provides prompt which asks for input (see screenshots below)
+`:CsPrompt <op>` is user command to invoke prompt.
+This command provides prompt which asks for input
 before running `:Cscope` command.
 
 e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol
 under cursor
 
 ```lua
-vim.keymap.set(
-  "n",
-  "<C-c><C-g>",
-  [[<cmd>lua require('cscope_maps').cscope_prompt('g', vim.fn.expand("<cword>"))<cr>]],
-  { noremap = true, silent = true }
-)
+vim.keymap.set("n", "<C-c><C-g>", ":CsPrompt g")
 ```
 
 #### Using `:Cscope` command
-
-Use `vim.api.nvim_set_keymap()` to set keymap for cscope.
 
 e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol
 under cursor
 
 ```lua
-vim.keymap.set(
-  "n",
-  "<C-c><C-g>",
-  [[<cmd>exe "Cscope find g" expand("<cword>")<cr>]],
-  { noremap = true, silent = true }
-)
+vim.keymap.set("n", "<C-c><C-g>", ":Cs f g")
 ```

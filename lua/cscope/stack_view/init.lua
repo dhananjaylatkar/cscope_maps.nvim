@@ -335,11 +335,8 @@ M.run_cmd = function(args)
 	local cmd = args[1]
 
 	if vim.startswith(cmd, "o") then
-		if #args ~= 3 then
-			return
-		end
 		local stk_dir = args[2]
-		local symbol = args[3]
+		local symbol = args[3] or cs.default_sym("s")
 		if vim.startswith(stk_dir, "d") then
 			stk_dir = "down"
 		elseif vim.startswith(stk_dir, "u") then

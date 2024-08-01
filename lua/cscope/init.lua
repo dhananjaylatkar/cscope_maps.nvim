@@ -344,7 +344,7 @@ end
 
 M.default_sym = function(op)
 	local arg = "<cword>"
-	if vim.tbl_contains({"f", "i", "7", "8"}, op) then
+	if vim.tbl_contains({ "f", "i", "7", "8" }, op) then
 		arg = "<cfile>"
 	end
 	return vim.fn.expand(arg)

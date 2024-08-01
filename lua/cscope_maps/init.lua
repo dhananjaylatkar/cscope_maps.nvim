@@ -16,7 +16,12 @@ M.opts = {
 
 -- function to print xcscpoe.el like prompts
 M.cscope_prompt = function(operation)
-	if not vim.tbl_contains(vim.tbl_keys(cs.op_s_n), operation) and not vim.tbl_contains(vim.tbl_values(cs.op_s_n), operation) then return end
+	if
+		not vim.tbl_contains(vim.tbl_keys(cs.op_s_n), operation)
+		and not vim.tbl_contains(vim.tbl_values(cs.op_s_n), operation)
+	then
+		return
+	end
 	if vim.tbl_contains(vim.tbl_values(cs.op_s_n), operation) then
 		operation = cs.op_n_s[operation]
 	end

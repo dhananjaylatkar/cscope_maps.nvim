@@ -16,7 +16,11 @@ M.opts = {
 
 -- function to print xcscpoe.el like prompts
 M.cscope_prompt = function(operation)
-	local default_symbol = cs.default_sym(operation:sub(1, 1))
+	if not vim.tbl_contains(vim.tbl_keys(cs.op_s_n), operation) and not vim.tbl_contains(vim.tbl_values(cs.op_s_n), operation) then return end
+	if vim.tbl_contains(vim.tbl_values(cs.op_s_n), operation) then
+		operation = cs.op_n_s[operation]
+	end
+	local default_symbol = cs.default_sym(operation)
 	if M.opts.skip_input_prompt then
 		vim.cmd.Cscope({ args = { "find", operation, default_symbol } })
 	else

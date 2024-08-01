@@ -433,6 +433,15 @@ M.cmd_cmp = function(_, line)
 
 	local short_cmd2 = l[3]:sub(1, 1)
 	local cur_arg = l[#l]
+
+	if n == 2 and short_cmd == "f" then
+		-- complete default_sym for "find" cmd
+		local default_sym = M.default_sym(short_cmd2)
+		if cur_arg == "" or vim.startswith(default_sym, cur_arg) then
+			return { default_sym }
+		end
+	end
+
 	if n >= 2 and short_cmd == "d" and short_cmd2 == "a" then
 		local sp = vim.split(cur_arg, ":")
 		local parent, fs_entries

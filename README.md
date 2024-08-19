@@ -67,7 +67,7 @@ Following example uses [lazy.nvim](https://github.com/folke/lazy.nvim)
     "folke/which-key.nvim", -- optional [for whichkey hints]
     "nvim-telescope/telescope.nvim", -- optional [for picker="telescope"]
     "ibhagwan/fzf-lua", -- optional [for picker="fzf-lua"]
-    "echasnovski/mini.pick" -- optional [for picker="mini-pick"]
+    "echasnovski/mini.pick", -- optional [for picker="mini-pick"]
     "nvim-tree/nvim-web-devicons", -- optional [for devicons in telescope, fzf or mini.pick]
   },
   opts = {

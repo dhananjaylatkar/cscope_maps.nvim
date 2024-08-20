@@ -79,7 +79,10 @@ end
 ---@return integer
 M.find = function(file, pre_path)
 	for i, cons in ipairs(M.conns) do
-		if cons.file == file and ((pre_path and cons.pre_path == pre_path) or cons.pre_path == nil) then
+		if
+			utils.is_path_same(cons.file, file)
+			and (utils.is_path_same(cons.pre_path, pre_path) or cons.pre_path == nil)
+		then
 			return i
 		end
 	end

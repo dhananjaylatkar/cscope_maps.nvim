@@ -106,4 +106,8 @@ M.get_dirs_in_dir = function(dir)
 	end, fs_entries)
 end
 
+M.is_path_same = function(path1, path2)
+	return path1 and path2 and M.get_abs_path(path1) == M.get_abs_path(path2)
+end
+
 return M

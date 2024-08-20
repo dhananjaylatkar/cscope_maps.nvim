@@ -106,7 +106,8 @@ M.parse_line = function(line, db_pre_path)
 	local sp = vim.split(line, "%s+")
 
 	t.filename = sp[1]
-	if db_pre_path then
+	-- in case of "-t" and "-e" pre_path is already present
+	if db_pre_path and not vim.startswith(t.filename, db_pre_path) then
 		t.filename = vim.fs.joinpath(db_pre_path, t.filename)
 	end
 	t.filename = utils.get_rel_path(vim.fn.getcwd(), t.filename)
@@ -191,7 +192,7 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 		for _, db_con in ipairs(db_conns) do
 			local db_file, db_pre_path = db_con.file, db_con.pre_path
 			if vim.loop.fs_stat(db_file) ~= nil then
-				local _cmd = string.format("%s -f %s", cmd, db_file)
+				local _cmd = string.format("%s -f %s -P %s", cmd, db_file, db_pre_path)
 				out = M.cmd_exec(_cmd)
 				if out ~= "" then
 					any_res = true

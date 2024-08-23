@@ -156,7 +156,7 @@ M.open_picker = function(op_s, symbol, parsed_output)
 	vim.cmd([[normal! m']])
 
 	if M.opts.skip_picker_for_single_result and #parsed_output == 1 then
-		vim.api.nvim_command("edit +" .. parsed_output[1]["lnum"] .. " " .. parsed_output[1]["filename"])
+		utils.open_file(parsed_output[1]["filename"], tonumber(parsed_output[1]["lnum"], 10))
 		return RC.SUCCESS
 	end
 

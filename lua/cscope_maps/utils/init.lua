@@ -110,4 +110,16 @@ M.is_path_same = function(path1, path2)
 	return path1 and path2 and M.get_abs_path(path1) == M.get_abs_path(path2)
 end
 
+---Opens file at given line number
+---@param fname string
+---@param lnum number
+M.open_file = function(fname, lnum)
+	if M.is_path_same(vim.api.nvim_buf_get_name(0), fname) then
+		-- change position when in same buffer
+		vim.api.nvim_win_set_cursor(0, { lnum, 0 })
+	else
+		vim.cmd(string.format("edit +%d %s", lnum, fname))
+	end
+end
+
 return M

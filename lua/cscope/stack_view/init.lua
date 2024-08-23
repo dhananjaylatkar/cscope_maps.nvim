@@ -1,6 +1,7 @@
 local cs = require("cscope")
 local tree = require("cscope.stack_view.tree")
 local hl = require("cscope.stack_view.hl")
+local utils = require("cscope_maps.utils")
 local M = {}
 
 -- m()
@@ -325,7 +326,7 @@ M.enter_action = function()
 
 	local _, pfilename, plnum = M.line_to_data(fn.getline("."))
 	M.toggle_win()
-	api.nvim_command("edit +" .. plnum .. " " .. pfilename)
+	utils.open_file(pfilename, plnum)
 end
 
 -- :CsStackView toggle

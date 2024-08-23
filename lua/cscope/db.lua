@@ -116,8 +116,14 @@ M.print_conns = function()
 		log.warn("No connections")
 	end
 
-	for _, conn in ipairs(M.conns) do
-		log.warn(string.format("db=%s pre_path=%s", conn.file, conn.pre_path))
+	for i, conn in ipairs(M.conns) do
+		local file = utils.get_rel_path(vim.fn.getcwd(), conn.file)
+		local pre_path = utils.get_rel_path(vim.fn.getcwd(), conn.pre_path)
+		if not pre_path or pre_path == "" then
+			log.warn(string.format("%d) db=%s", i, file))
+		else
+			log.warn(string.format("%d) db=%s pre_path=%s", i, file, pre_path))
+		end
 	end
 end
 

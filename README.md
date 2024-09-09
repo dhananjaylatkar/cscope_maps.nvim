@@ -80,6 +80,7 @@ Following example uses [lazy.nvim](https://github.com/folke/lazy.nvim)
 ## Configuration
 
 You must run `require("cscope_maps").setup()` to initialize the plugin even when using default options.
+If you want to load the plugin from startup add `lua require("cscope_maps").setup()` to your `vimrc`.
 
 _cscope_maps_ comes with following defaults:
 

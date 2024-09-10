@@ -1,4 +1,4 @@
-*cscope_maps.txt*       For Neovim >= v0.10.0      Last change: 2024 August 19
+*cscope_maps.txt*     For Neovim >= v0.10.0     Last change: 2024 September 10
 
 ==============================================================================
 Table of Contents                              *cscope_maps-table-of-contents*
@@ -103,6 +103,8 @@ CONFIGURATION                     *cscope_maps-cscope_maps.nvim-configuration*
 
 You must run `require("cscope_maps").setup()` to initialize the plugin even
 when using default options.
+
+NOTE: In `vimrc` use `lua require("cscope_maps").setup()`
 
 _cscope_maps_ comes with following defaults:
 

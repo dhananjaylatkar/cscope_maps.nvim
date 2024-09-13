@@ -55,20 +55,18 @@ M.sp_file_pre_path = function(path)
 	---@type string|nil
 	local pre_path = sp[2]
 
+	-- use cwd if pre_path is not provided
+	if pre_path == nil or pre_path == "" then
+		pre_path = vim.fn.getcwd()
+	end
+
 	-- use parent as pre_path if its "@"
-	if pre_path and pre_path == "@" then
+	if pre_path == "@" then
 		pre_path = utils.get_path_parent(file)
 	end
 
-	-- make it nil if its empty
-	if pre_path and pre_path == "" then
-		pre_path = nil
-	end
-
-	-- if pre_path exists, normalize it
-	if pre_path then
-		pre_path = vim.fs.normalize(pre_path)
-	end
+	-- normalize it
+	pre_path = vim.fs.normalize(pre_path)
 
 	return file, pre_path
 end

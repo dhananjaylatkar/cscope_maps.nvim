@@ -55,6 +55,7 @@ for k, v in pairs(M.op_s_n) do
 end
 
 local cscope_picker = nil
+local gtags_db = "GTAGS"
 
 M.help = function()
 	print([[
@@ -201,8 +202,8 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 			end
 		end
 	elseif M.opts.exec == "gtags-cscope" then
-		if vim.loop.fs_stat("GTAGS") == nil then
-			log.warn("GTAGS file not found", hide_log)
+		if vim.loop.fs_stat(gtags_db) == nil then
+			log.warn(gtags_db .. " file not found", hide_log)
 			return RC.DB_NOT_FOUND, nil
 		end
 		if op_s == "d" then
@@ -523,6 +524,10 @@ M.setup = function(opts)
 	--	vim.g.gutentags_cache_dir is enabled.
 	vim.g.cscope_maps_db_file = nil
 	vim.g.cscope_maps_statusline_indicator = nil
+
+	if M.opts.exec == "gtags-cscope" then
+		M.opts.db_file = gtags_db
+	end
 
 	if type(M.opts.db_file) == "string" then
 		db.add(M.opts.db_file)

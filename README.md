@@ -26,7 +26,7 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - Keymaps can be disabled using `disable_maps` option.
 - `:CsPrompt <op>` can be used to invoke cscope prompt.
 - Display results in quickfix, **telescope**, **fzf-lua** or **mini.pick**.
-- Has [which-key.nvim](https://github.com/folke/which-key.nvim) hints.
+- Has [which-key.nvim](https://github.com/folke/which-key.nvim) and [mini.clue](https://github.com/echasnovski/mini.clue) hints.
 - See [this section](#vim-gutentags) for `vim-gutentags`.
 
 ### Cscope DB
@@ -64,11 +64,9 @@ Following example uses [lazy.nvim](https://github.com/folke/lazy.nvim)
 {
   "dhananjaylatkar/cscope_maps.nvim",
   dependencies = {
-    "folke/which-key.nvim", -- optional [for whichkey hints]
     "nvim-telescope/telescope.nvim", -- optional [for picker="telescope"]
     "ibhagwan/fzf-lua", -- optional [for picker="fzf-lua"]
     "echasnovski/mini.pick", -- optional [for picker="mini-pick"]
-    "nvim-tree/nvim-web-devicons", -- optional [for devicons in telescope, fzf or mini.pick]
   },
   opts = {
     -- USE EMPTY FOR DEFAULT OPTIONS

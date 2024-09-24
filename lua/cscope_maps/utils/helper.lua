@@ -17,12 +17,16 @@ M.sym_map = {
 M.default_keymaps = function(prefix)
 	local map = vim.keymap.set
 	local sym_map = M.sym_map
-	local ok, wk = pcall(require, "which-key")
-	if ok then
-		if wk.add then
-			wk.add({ { prefix, group = "+cscope" } })
-		else
-			wk.register({ [prefix] = { name = "+cscope" } })
+	if MiniClue then
+		table.insert(MiniClue.config.clues, { mode = "n", keys = prefix, desc = "+cscope" })
+	else
+		local ok, wk = pcall(require, "which-key")
+		if ok then
+			if wk.add then
+				wk.add({ { prefix, group = "+cscope" } })
+			else
+				wk.register({ [prefix] = { name = "+cscope" } })
+			end
 		end
 	end
 	map("n", prefix .. "s", "<cmd>CsPrompt s<cr>", { desc = sym_map.s })

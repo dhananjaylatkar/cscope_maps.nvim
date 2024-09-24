@@ -1,4 +1,4 @@
-*cscope_maps.txt*     For Neovim >= v0.10.0     Last change: 2024 September 10
+*cscope_maps.txt*     For Neovim >= v0.10.0     Last change: 2024 September 24
 
 ==============================================================================
 Table of Contents                              *cscope_maps-table-of-contents*
@@ -44,7 +44,7 @@ CSCOPE ~
 - Keymaps can be disabled using `disable_maps` option.
 - `:CsPrompt <op>` can be used to invoke cscope prompt.
 - Display results in quickfix, **telescope**, **fzf-lua** or **mini.pick**.
-- Has which-key.nvim <https://github.com/folke/which-key.nvim> hints.
+- Has which-key.nvim <https://github.com/folke/which-key.nvim> and mini.clue <https://github.com/echasnovski/mini.clue> hints.
 - See |cscope_maps-this-section| for `vim-gutentags`.
 
 
@@ -85,11 +85,9 @@ lazy.nvim <https://github.com/folke/lazy.nvim>
     {
       "dhananjaylatkar/cscope_maps.nvim",
       dependencies = {
-        "folke/which-key.nvim", -- optional [for whichkey hints]
         "nvim-telescope/telescope.nvim", -- optional [for picker="telescope"]
         "ibhagwan/fzf-lua", -- optional [for picker="fzf-lua"]
         "echasnovski/mini.pick", -- optional [for picker="mini-pick"]
-        "nvim-tree/nvim-web-devicons", -- optional [for devicons in telescope, fzf or mini.pick]
       },
       opts = {
         -- USE EMPTY FOR DEFAULT OPTIONS

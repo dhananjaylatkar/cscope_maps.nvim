@@ -186,7 +186,6 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 	local db_conns = db.all_conns()
 	local cmd = string.format("%s -dL -%s %s", M.opts.exec, op_n, symbol)
 	local out = ""
-	local any_res = false
 	local res = {}
 
 	if M.opts.exec == "cscope" then
@@ -195,10 +194,7 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 			if vim.loop.fs_stat(db_file) ~= nil then
 				local _cmd = string.format("%s -f %s -P %s", cmd, db_file, db_pre_path)
 				out = M.cmd_exec(_cmd)
-				if out ~= "" then
-					any_res = true
-					res = vim.tbl_deep_extend("keep", res, M.parse_output(out, db_pre_path))
-				end
+				res = vim.list_extend(res, M.parse_output(out, db_pre_path))
 			end
 		end
 	elseif M.opts.exec == "gtags-cscope" then
@@ -212,16 +208,13 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 		end
 
 		out = M.cmd_exec(cmd)
-		if out ~= "" then
-			any_res = true
-			res = vim.tbl_deep_extend("keep", res, M.parse_output(out, db_pre_path))
-		end
+		res = vim.list_extend(res, M.parse_output(out, db_pre_path))
 	else
 		log.warn("'" .. M.opts.exec .. "' executable is not supported", hide_log)
 		return RC.INVALID_EXEC, nil
 	end
 
-	if any_res == false then
+	if vim.tbl_isempty(res) then
 		log.warn("no results for 'cscope find " .. op_s .. " " .. symbol .. "'", hide_log)
 		return RC.NO_RESULTS, nil
 	end

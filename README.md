@@ -196,7 +196,7 @@ e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol
 under cursor
 
 ```lua
-vim.keymap.set("n", "<C-c><C-g>", ":CsPrompt g")
+vim.keymap.set({ "n", "v" }, "<C-c><C-g>", "<cmd>CsPrompt g<cr>")
 ```
 
 #### Using `:Cscope` command
@@ -205,5 +205,6 @@ e.g. Following snippet maps <kbd>C-c C-g</kbd> to find global def of symbol
 under cursor
 
 ```lua
-vim.keymap.set("n", "<C-c><C-g>", ":Cs f g")
+vim.keymap.set({ "n", "v" }, "<C-c><C-g>", "<cmd>Cs f g<cr>")
 ```
+

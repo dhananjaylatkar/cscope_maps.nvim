@@ -375,8 +375,16 @@ M.run = function(args)
 			symbol = symbol .. " " .. args[i]
 		end
 
-		-- add escape chars for " ", '"' and "'"
-		symbol = symbol:gsub(" ", "\\ "):gsub('"', '\\"'):gsub("'", "\\'")
+		-- escape commonly used special chars
+		symbol = symbol:gsub("([%s\"%'%(%)><])", {
+			[" "] = "\\ ",
+			['"'] = '\\"',
+			["'"] = "\\'",
+			["("] = "\\(",
+			[")"] = "\\)",
+			[">"] = "\\>",
+			["<"] = "\\<",
+		})
 
 		M.find(op, symbol)
 	elseif cmd:sub(1, 1) == "b" then

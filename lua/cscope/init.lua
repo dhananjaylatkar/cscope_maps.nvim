@@ -338,11 +338,20 @@ M.db_update = function(op, files)
 end
 
 M.default_sym = function(op)
-	local arg = "<cword>"
-	if vim.tbl_contains({ "f", "i", "7", "8" }, op) then
-		arg = "<cfile>"
+	local sym = ""
+	if vim.fn.mode() == "v" then
+		local saved_reg = vim.fn.getreg "v"
+		vim.cmd [[noautocmd sil norm! "vy]]
+		sym = vim.fn.getreg "v"
+		vim.fn.setreg("v", saved_reg)
+	else
+		local arg = "<cword>"
+		if vim.tbl_contains({ "f", "i", "7", "8" }, op) then
+			arg = "<cfile>"
+		end
+		sym = vim.fn.expand(arg)
 	end
-	return vim.fn.expand(arg)
+	return sym
 end
 
 M.run = function(args)

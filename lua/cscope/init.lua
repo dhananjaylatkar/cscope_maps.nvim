@@ -343,9 +343,9 @@ end
 M.default_sym = function(op)
 	local sym = ""
 	if vim.fn.mode() == "v" then
-		local saved_reg = vim.fn.getreg "v"
-		vim.cmd [[noautocmd sil norm! "vy]]
-		sym = vim.fn.getreg "v"
+		local saved_reg = vim.fn.getreg("v")
+		vim.cmd([[noautocmd sil norm! "vy]])
+		sym = vim.fn.getreg("v")
 		vim.fn.setreg("v", saved_reg)
 	else
 		local arg = "<cword>"

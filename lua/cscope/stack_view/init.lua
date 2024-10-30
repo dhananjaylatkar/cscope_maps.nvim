@@ -198,9 +198,9 @@ M.line_to_data = function(line)
 	local lnum = 0
 
 	if #line_split == 3 then
-		local file_loc = vim.split(line_split[3], ":")
-		filename = file_loc[1]:sub(2)
-		lnum = tonumber(file_loc[2]:sub(1, -2), 10)
+		local _filename, _lnum = utils.separate_fname(line_split[3], ":")
+		filename = _filename:sub(2)
+		lnum = tonumber(_lnum:sub(1, -2), 10)
 	end
 
 	return symbol, filename, lnum

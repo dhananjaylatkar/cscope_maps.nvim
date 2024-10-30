@@ -7,6 +7,7 @@ local M = {}
 M.conns = {}
 M.global_conn = nil
 
+M.sep = ":"
 
 M.reset = function()
 	M.conns = {}
@@ -50,16 +51,14 @@ M.update_global_conn = function()
 	end
 end
 
----Split input to ":Cs db add" into file and pre_path
+---Split input of ":Cs db add" into file and pre_path and normalize them
 ---@param path string
 ---@return string
 ---@return string|nil
 M.sp_file_pre_path = function(path)
-	local sp = vim.split(path, ":")
-	local file = vim.fs.normalize(sp[1])
+	local file, pre_path = utils.separate_fname(path, M.sep)
 
-	---@type string|nil
-	local pre_path = sp[2]
+	file = vim.fs.normalize(file)
 
 	-- use cwd if pre_path is not provided
 	if pre_path == nil or pre_path == "" then

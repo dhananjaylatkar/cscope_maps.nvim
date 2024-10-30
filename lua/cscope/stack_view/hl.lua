@@ -1,4 +1,5 @@
 local tree = require("cscope.stack_view.tree")
+local utils = require("cscope_maps.utils")
 local fn = vim.fn
 local api = vim.api
 
@@ -17,9 +18,9 @@ M.get_pos = function(lnum)
 	local flnum = ""
 
 	if #line_split == 3 then
-		local file_loc = vim.split(line_split[3], ":")
-		fname = file_loc[1]:sub(2)
-		flnum = file_loc[2]:sub(1, -2)
+		local _filename, _lnum = utils.separate_fname(line_split[3], ":")
+		fname = _filename:sub(2)
+		flnum = _lnum:sub(1, -2)
 	end
 
 	local indicator_s = indent_len

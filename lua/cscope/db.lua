@@ -7,6 +7,12 @@ local M = {}
 M.conns = {}
 M.global_conn = nil
 
+
+M.reset = function()
+	M.conns = {}
+	M.global_conn = nil
+end
+
 ---Get all db connections
 ---If global connection is declared then use that
 ---@return table

@@ -122,4 +122,21 @@ M.open_file = function(fname, lnum)
 	end
 end
 
+---Separate out fname from path
+---@param path string
+---@param sep string
+M.separate_fname = function(path, sep)
+	local sp = vim.split(path, sep)
+	local file = sp[1]
+	local other = sp[2]
+
+	if vim.fn.has("win32") and #file == 1 then
+		-- assume that it is drive letter
+		file = sp[1] .. sep .. sp[2]
+		other = sp[3]
+	end
+
+	return file, other
+end
+
 return M

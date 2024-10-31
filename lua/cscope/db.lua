@@ -7,7 +7,7 @@ local M = {}
 M.conns = {}
 M.global_conn = nil
 
-M.sep = ":"
+M.sep = "::"
 
 M.reset = function()
 	M.conns = {}
@@ -56,7 +56,9 @@ end
 ---@return string
 ---@return string|nil
 M.sp_file_pre_path = function(path)
-	local file, pre_path = utils.separate_fname(path, M.sep)
+	local sp = vim.split(path, M.sep)
+	local file = sp[1]
+	local pre_path = sp[2]
 
 	file = vim.fs.normalize(file)
 

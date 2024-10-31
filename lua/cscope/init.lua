@@ -495,7 +495,7 @@ M.cmd_cmp = function(_, line)
 
 		for i, conn in ipairs(db_conns) do
 			if i > 1 then
-				table.insert(entries, string.format("%s:%s", conn.file, conn.pre_path))
+				table.insert(entries, string.format("%s%s%s", conn.file, db.sep, conn.pre_path))
 			end
 		end
 

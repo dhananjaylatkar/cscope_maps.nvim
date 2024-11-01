@@ -23,7 +23,7 @@ M.opts = {
 -- callers --> DOWN the stack
 -- called  --> UP the stack
 
-M.cache = { sv = { buf = nil, win = nil }, pv = { buf = nil, win = nil } }
+M.cache = { sv = { buf = nil, win = nil }, pv = { buf = nil, win = nil, files = {}, last_file = "" } }
 M.dir_map = {
 	down = {
 		indicator = "<- ",
@@ -125,6 +125,8 @@ M.buf_close = function()
 
 	M.cache.pv.buf = nil
 	M.cache.pv.win = nil
+
+	M.cache.pv.last_file = ""
 end
 
 M.buf_update = function()
@@ -187,11 +189,18 @@ M.preview_update = function()
 	vim.schedule(function()
 		local _, filename, lnum = M.line_to_data(fn.getline("."))
 		if filename == "" then
+			M.cache.pv.last_file = ""
 			api.nvim_buf_set_lines(M.cache.pv.buf, 0, -1, false, {})
 			return
 		end
-		local lines = M.read_lines_from_file(filename)
-		api.nvim_buf_set_lines(M.cache.pv.buf, 0, -1, false, lines)
+		if filename ~= M.cache.pv.last_file then
+			local lines = M.cache.pv.files[filename] or M.read_lines_from_file(filename)
+			-- cache files for reuse
+			M.cache.pv.files[filename] = lines
+			M.cache.pv.last_file = filename
+
+			api.nvim_buf_set_lines(M.cache.pv.buf, 0, -1, false, lines)
+		end
 		api.nvim_win_set_cursor(M.cache.pv.win, { lnum, 0 })
 	end)
 end

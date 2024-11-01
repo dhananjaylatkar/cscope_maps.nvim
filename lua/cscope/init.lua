@@ -35,6 +35,8 @@ M.opts = {
 	},
 }
 
+M.user_opts = {}
+
 -- operation symbol to number map
 M.op_s_n = {
 	s = "0",
@@ -77,6 +79,7 @@ db   : DB related queries             (Usage: db build|add <files>|rm <files>|sh
        rm    : Remove db file(s)
        show  : Show current db file(s)
 
+reload: Reload plugin config
 help : Show this message              (Usage: help)
 ]])
 end
@@ -340,9 +343,9 @@ end
 M.default_sym = function(op)
 	local sym = ""
 	if vim.fn.mode() == "v" then
-		local saved_reg = vim.fn.getreg "v"
-		vim.cmd [[noautocmd sil norm! "vy]]
-		sym = vim.fn.getreg "v"
+		local saved_reg = vim.fn.getreg("v")
+		vim.cmd([[noautocmd sil norm! "vy]])
+		sym = vim.fn.getreg("v")
 		vim.fn.setreg("v", saved_reg)
 	else
 		local arg = "<cword>"
@@ -413,13 +416,15 @@ M.run = function(args)
 		end
 	elseif cmd:sub(1, 1) == "h" then
 		M.help()
+	elseif cmd:sub(1, 1) == "r" then
+		M.reload()
 	else
 		log.warn("command '" .. cmd .. "' is invalid")
 	end
 end
 
 M.cmd_cmp = function(_, line)
-	local cmds = { "find", "db", "help" }
+	local cmds = { "find", "db", "reload", "help" }
 	local l = vim.split(line, "%s+")
 	local n = #l - 2
 
@@ -455,7 +460,7 @@ M.cmd_cmp = function(_, line)
 	end
 
 	if n >= 2 and short_cmd == "d" and short_cmd2 == "a" then
-		local sp = vim.split(cur_arg, ":")
+		local sp = vim.split(cur_arg, db.sep)
 		local parent, fs_entries
 
 		if sp[2] ~= nil then
@@ -466,7 +471,7 @@ M.cmd_cmp = function(_, line)
 			table.insert(fs_entries, 1, "@")
 
 			fs_entries = vim.tbl_map(function(x)
-				return sp[1] .. ":" .. x
+				return sp[1] .. db.sep .. x
 			end, fs_entries)
 		else
 			-- complete db path
@@ -490,7 +495,7 @@ M.cmd_cmp = function(_, line)
 
 		for i, conn in ipairs(db_conns) do
 			if i > 1 then
-				table.insert(entries, string.format("%s:%s", conn.file, conn.pre_path))
+				table.insert(entries, string.format("%s%s%s", conn.file, db.sep, conn.pre_path))
 			end
 		end
 
@@ -525,9 +530,16 @@ M.user_command = function()
 	})
 end
 
+M.reload = function()
+	db.reset()
+	M.setup(M.user_opts)
+end
+
 ---Initialization api
 ---@param opts CsConfig
 M.setup = function(opts)
+	-- save original opts for reload operation
+	M.user_opts = vim.deepcopy(opts)
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
 	-- This variable can be used by other plugins to change db_file
 	-- e.g. vim-gutentags can use it for when

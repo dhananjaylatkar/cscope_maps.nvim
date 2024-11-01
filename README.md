@@ -38,10 +38,10 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - `:Cs db build` (re)builds db for primary db.
 - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
 - DB path grammar
-  - `db_file:db_pre_path` db_pre_path (prefix path) will be appended to cscope results.
-  - e.g. `:Cs db add ~/cscope.out:/home/code/proj2` => results from `~/cscope.out` will be prefixed with `/home/code/proj2/`
+  - `db_file::db_pre_path` db_pre_path (prefix path) will be appended to cscope results.
+  - e.g. `:Cs db add ~/cscope.out::/home/code/proj2` => results from `~/cscope.out` will be prefixed with `/home/code/proj2/`
   - `@` can be used to indicate that parent of `db_file` is `db_pre_path`.
-  - e.g. `:Cs db add ../proj2/cscope.out:@` => results from `../proj2/cscope.out` will be prefixed with `../proj2/`
+  - e.g. `:Cs db add ../proj2/cscope.out::@` => results from `../proj2/cscope.out` will be prefixed with `../proj2/`
 
 ### Stack View
 

@@ -198,7 +198,7 @@ M.line_to_data = function(line)
 	local lnum = 0
 
 	if #line_split == 3 then
-		local file_loc = vim.split(line_split[3], ":")
+		local file_loc = vim.split(line_split[3], "::")
 		filename = file_loc[1]:sub(2)
 		lnum = tonumber(file_loc[2]:sub(1, -2), 10)
 	end
@@ -212,7 +212,7 @@ M.buf_create_lines = function(node)
 		item = node.data.symbol
 	else
 		item = string.format(
-			"%s%s%s [%s:%s]",
+			"%s%s%s [%s::%s]",
 			string.rep(" ", node.depth * #M.dir_map[cur_dir].indicator),
 			M.dir_map[cur_dir].indicator,
 			node.data.symbol,

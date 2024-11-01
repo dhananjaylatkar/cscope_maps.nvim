@@ -17,7 +17,7 @@ M.get_pos = function(lnum)
 	local flnum = ""
 
 	if #line_split == 3 then
-		local file_loc = vim.split(line_split[3], ":")
+		local file_loc = vim.split(line_split[3], "::")
 		fname = file_loc[1]:sub(2)
 		flnum = file_loc[2]:sub(1, -2)
 	end
@@ -35,9 +35,9 @@ M.get_pos = function(lnum)
 	local fname_e = fname_s + #fname
 
 	local delim_s = fname_e
-	local delim_e = fname_e+1
+	local delim_e = fname_e+2
 
-	local lnum_s = fname_e+1
+	local lnum_s = fname_e+2
 	local lnum_e = lnum_s+#flnum
 
 	local bc_s = lnum_e

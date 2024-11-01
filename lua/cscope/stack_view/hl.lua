@@ -1,5 +1,4 @@
 local tree = require("cscope.stack_view.tree")
-local utils = require("cscope_maps.utils")
 local fn = vim.fn
 local api = vim.api
 

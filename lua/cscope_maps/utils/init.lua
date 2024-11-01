@@ -130,10 +130,10 @@ M.separate_fname = function(path, sep)
 	local file = sp[1]
 	local other = sp[2]
 
-	if vim.fn.has("win32") and #file == 1 then
+	if vim.fn.has("win32") and #file == 1 and #sp == 3 then
 		-- assume that it is drive letter
-		file = sp[1] .. sep .. sp[2]
-		other = sp[3]
+		file = sp[1]
+		other = sp[2] .. sep .. sp[3]
 	end
 
 	return file, other

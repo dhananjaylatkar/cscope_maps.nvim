@@ -20,10 +20,7 @@ M.create_node = function(symbol, filename, lnum)
 end
 
 M.compare_node = function(node, id)
-	return (
-		node
-		and node.id == id
-	)
+	return (node and node.id == id)
 end
 
 M.get_node = function(root, id)
@@ -80,10 +77,10 @@ end
 
 M.get_ancestors = function(root, node_id)
 	if root.id == node_id then
-		return {root.id}
+		return { root.id }
 	end
 
-	local st = {{root}}
+	local st = { { root } }
 	while #st ~= 0 do
 		local cur_path = table.remove(st, 1)
 		local cur_node = cur_path[#cur_path]
@@ -91,7 +88,9 @@ M.get_ancestors = function(root, node_id)
 			for _, c in ipairs(cur_node.children) do
 				table.insert(cur_path, c)
 				if c.id == node_id then
-					return vim.tbl_map(function(x) return x.id end, cur_path)
+					return vim.tbl_map(function(x)
+						return x.id
+					end, cur_path)
 				end
 				table.insert(st, vim.deepcopy(cur_path))
 				table.remove(cur_path)

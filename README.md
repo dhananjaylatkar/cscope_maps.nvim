@@ -118,6 +118,11 @@ _cscope_maps_ comes with following defaults:
       -- change cwd to where db_file is located
       change_cwd = false, -- "true" or "false"
     },
+  },
+
+  -- stack view defaults
+  stack_view = {
+    tree_hl = true, -- toggle tree highlighting
   }
 }
 ```

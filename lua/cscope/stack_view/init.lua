@@ -4,6 +4,10 @@ local hl = require("cscope.stack_view.hl")
 local utils = require("cscope_maps.utils")
 local M = {}
 
+M.opts = {
+	tree_hl = true, -- toggle tree highlighting
+}
+
 -- m()
 -- -> a()
 -- -> b()
@@ -159,7 +163,9 @@ M.buf_update = function()
 		group = augroup,
 		buffer = M.cache.sv.buf,
 		callback = function()
-			hl.refresh(M.cache.sv.buf, root, #buf_lines)
+			if M.opts.tree_hl then
+				hl.refresh(M.cache.sv.buf, root, #buf_lines)
+			end
 			M.preview_update()
 		end,
 	})
@@ -373,7 +379,8 @@ M.set_user_cmd = function()
 	})
 end
 
-M.setup = function()
+M.setup = function(opts)
+	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
 	M.set_user_cmd()
 end
 

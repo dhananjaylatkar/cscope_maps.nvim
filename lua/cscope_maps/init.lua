@@ -12,6 +12,7 @@ M.opts = {
 	skip_input_prompt = false, -- "true" doesn't ask for input
 	prefix = "<leader>c", -- prefix to trigger maps
 	cscope = {}, -- defaults are in cscope.lua
+	stack_view = {}, -- defaults are in stack_view
 }
 
 -- function to print xcscpoe.el like prompts
@@ -64,7 +65,7 @@ M.setup = function(opts)
 	end
 
 	cs.setup(M.opts.cscope)
-	require("cscope.stack_view").setup()
+	require("cscope.stack_view").setup(M.opts.stack_view)
 end
 
 return M

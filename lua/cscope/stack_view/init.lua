@@ -166,7 +166,7 @@ M.buf_update = function()
 		buffer = M.cache.sv.buf,
 		callback = function()
 			if M.opts.tree_hl then
-				hl.refresh(M.cache.sv.buf, root, #buf_lines)
+				hl.refresh(M.cache.sv.buf, root)
 			end
 			M.preview_update()
 		end,

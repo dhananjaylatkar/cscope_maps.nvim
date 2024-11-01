@@ -59,18 +59,21 @@ M.get_pos = function(lnum)
 		bc_e
 end
 
-M.refresh = function(buf, root, num_of_lines)
+M.refresh = function(buf, root)
 	if vim.bo.filetype ~= M.ft then
 		return
 	end
 	local ancestors = tree.get_ancestors(root, fn.line("."))
 
 	local ns = api.nvim_create_namespace("CsStackViewHighlight")
-	local buf_lnum = 0
+
+	local buf_lnum_start = fn.line("w0") - 1
+	local buf_lnum_end = fn.line("w$")
+	local buf_lnum = buf_lnum_start
 
 	api.nvim_buf_clear_namespace(buf, ns, 0, -1)
 
-	while buf_lnum < num_of_lines do
+	while buf_lnum < buf_lnum_end do
 		if buf_lnum == 0 then
 			api.nvim_buf_add_highlight(buf, ns, "Function", buf_lnum, 0, -1)
 		elseif vim.tbl_contains(ancestors, buf_lnum + 1) then

@@ -308,29 +308,18 @@ M.db_build = function()
 	end
 	db_build_cmd_args = table.concat(db_build_cmd_args, " ")
 
-	local function exists(path, is_dir)
-		if is_dir then
-			return vim.fn.isdirectory(path) == 1
-		else
-			return vim.fn.filereadable(path) == 1
-		end
-	end
-
 	local function handle_spawn(command, message, on_complete)
 		local handle
+
 		local function on_exit(code, _)
 			stdout:read_stop()
 			stderr:read_stop()
-			if not stdout:is_closing() then
-				stdout:close()
-			end
-			if not stderr:is_closing() then
-				stderr:close()
-			end
-			if handle and not handle:is_closing() then
-				handle:close()
-			end
-			handle = nil
+			if not stdout:is_closing() then stdout:close() end
+			if not stderr:is_closing() then stderr:close() end
+			if handle then
+        handle:close()
+				handle = nil
+      end
 
 			if code == 0 then
 				log.info(message .. " succeeded")
@@ -380,19 +369,20 @@ M.db_build = function()
 			cmd = "make cscope",
 			msg = "Building Cscope database using Makefile",
 			check = function()
-				return exists("Makefile", false)
+				return vim.fn.filereadable("Makefile") == 1
 			end,
 		},
 		{
-			cmd = string.format("git ls-files | " .. M.opts.exec .. " %s -i -", db_build_cmd_args),
+			cmd = string.format("git ls-files | %s %s -i - ", M.opts.exec, db_build_cmd_args),
 			msg = "Building Cscope database using Git files",
 			check = function()
-				return exists(".git", true)
+				return vim.fn.isdirectory(".git") == 1
 			end,
 		},
 		{
 			cmd = string.format(
-				"find . -name '*.c' -o -name '*.cpp' -o -name '*.h' | " .. M.opts.exec .. " %s -i -",
+				"find . -name '*.c' -o -name '*.cpp' -o -name '*.h' | %s %s -i - ",
+				M.opts.exec,
 				db_build_cmd_args
 			),
 			msg = "Building Cscope database using find command",

@@ -292,7 +292,7 @@ M.db_build = function()
 		return
 	end
 
-	vim.g.cscope_maps_statusline_indicator = true
+	vim.g.cscope_maps_statusline_indicator = M.opts.statusline_indicator or M.opts.exec
 
 	if M.opts.exec == "cscope" then
 		table.insert(db_build_cmd_args, "-f")
@@ -303,7 +303,7 @@ M.db_build = function()
 	vim.cmd("cd " .. db_root)
 
 	local function run_command(commands, index)
-		local handle
+		local handle = nil
 		local stdout = vim.loop.new_pipe()
 		local stderr = vim.loop.new_pipe()
 

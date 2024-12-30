@@ -287,45 +287,118 @@ M.db_build = function()
 	local cur_path = vim.fn.getcwd()
 	local db_conn = db.primary_conn() -- TODO: extend support to all db conns
 	local db_file = db_conn.file
-	local db_root = utils.get_path_parent(db_file)
+	-- local db_root = utils.get_path_parent(db_file) -- TODO: change pwd
 
 	if vim.g.cscope_maps_statusline_indicator then
 		log.warn("db build is already in progress")
 		return
 	end
 
+	vim.g.cscope_maps_statusline_indicator = true
+
 	if M.opts.exec == "cscope" then
 		table.insert(db_build_cmd_args, "-f")
 		table.insert(db_build_cmd_args, db_file)
+		table.insert(db_build_cmd_args, "-i")
+		table.insert(db_build_cmd_args, "-")
 	end
+	db_build_cmd_args = table.concat(db_build_cmd_args, " ")
 
-	vim.cmd("cd " .. db_root)
+	local function exists(path, is_dir)
+		if is_dir then
+			return vim.fn.isdirectory(path) == 1
+		else
+			return vim.fn.filereadable(path) == 1
+		end
+  end
 
-	local handle = nil
-	vim.g.cscope_maps_statusline_indicator = M.opts.statusline_indicator or M.opts.exec
-	handle = vim.loop.spawn(
-		M.opts.exec,
-		{
-			args = db_build_cmd_args,
-			stdio = { nil, stdout, stderr },
-		},
-		vim.schedule_wrap(function(code, _) -- on exit
+	local function handle_spawn(command, message, on_complete)
+		local handle
+		local function on_exit(code, _)
 			stdout:read_stop()
 			stderr:read_stop()
-			stdout:close()
-			stderr:close()
-			handle:close()
-			if code == 0 then
-				log.info("database built successfully")
-			else
-				log.warn("database build failed")
+			if not stdout:is_closing() then
+				stdout:close()
 			end
+			if not stderr:is_closing() then
+				stderr:close()
+			end
+			if handle and not handle:is_closing() then
+				handle:close()
+			end
+			handle = nil
+
+			if code == 0 then
+				log.info(message .. " succeeded")
+				on_complete(true)
+			else
+				log.info(message .. " failed, try next method")
+				on_complete(false)
+			end
+		end
+
+		handle = vim.loop.spawn(
+			"sh",
+			{ args = { "-c", command }, stdio = { nil, stdout, stderr } },
+			vim.schedule_wrap(on_exit)
+		)
+
+		vim.loop.read_start(stdout, M.db_build_output)
+		vim.loop.read_start(stderr, M.db_build_output)
+	end
+
+	local function try_next_command(commands, index)
+		if index > #commands then
+			log.error("Cscope database build failed. All methods exhausted.")
 			vim.g.cscope_maps_statusline_indicator = nil
 			vim.cmd("cd " .. cur_path)
-		end)
-	)
-	vim.loop.read_start(stdout, M.db_build_output)
-	vim.loop.read_start(stderr, M.db_build_output)
+			return
+		end
+
+		local command = commands[index]
+		if command.check() then
+			handle_spawn(command.cmd, command.msg, function(success)
+				if not success then
+					try_next_command(commands, index + 1)
+				else
+					vim.cmd("cd " .. cur_path)
+					vim.g.cscope_maps_statusline_indicator = nil
+				end
+			end)
+		else
+			log.warn(command.msg .. " skipped (check failed).")
+			try_next_command(commands, index + 1)
+		end
+  end
+
+	local commands = {
+		{
+			cmd = "make cscope",
+			msg = "Building Cscope database using Makefile",
+			check = function()
+				return exists("Makefile", false)
+			end,
+		},
+		{
+			cmd = string.format("git ls-files | " .. M.opts.exec .. " %s -i -", db_build_cmd_args),
+			msg = "Building Cscope database using Git files",
+			check = function()
+				return exists(".git", true)
+			end,
+		},
+		{
+			cmd = string.format(
+				"find . -name '*.c' -o -name '*.cpp' -o -name '*.h' | " .. M.opts.exec .. " %s -i -",
+				db_build_cmd_args
+			),
+			msg = "Building Cscope database using find command",
+			check = function()
+				return true
+			end,
+		},
+	}
+
+	try_next_command(commands, 1)
 end
 
 M.db_update = function(op, files)

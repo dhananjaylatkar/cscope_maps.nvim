@@ -373,7 +373,7 @@ M.db_build = function()
 			end,
 		},
 		{
-			cmd = string.format("git ls-files | %s %s -i - ", M.opts.exec, db_build_cmd_args),
+			cmd = string.format("git ls-files | %s %s", M.opts.exec, db_build_cmd_args),
 			msg = "Building Cscope database using Git files",
 			check = function()
 				return vim.fn.isdirectory(".git") == 1
@@ -381,7 +381,7 @@ M.db_build = function()
 		},
 		{
 			cmd = string.format(
-				"find . -name '*.c' -o -name '*.cpp' -o -name '*.h' | %s %s -i - ",
+				"find . -name '*.c' -o -name '*.cpp' -o -name '*.h' | %s %s",
 				M.opts.exec,
 				db_build_cmd_args
 			),

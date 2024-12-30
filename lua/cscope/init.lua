@@ -287,7 +287,7 @@ M.db_build = function()
 	local cur_path = vim.fn.getcwd()
 	local db_conn = db.primary_conn() -- TODO: extend support to all db conns
 	local db_file = db_conn.file
-	-- local db_root = utils.get_path_parent(db_file) -- TODO: change pwd
+	local db_root = utils.get_path_parent(db_file)
 
 	if vim.g.cscope_maps_statusline_indicator then
 		log.warn("db build is already in progress")
@@ -295,6 +295,10 @@ M.db_build = function()
 	end
 
 	vim.g.cscope_maps_statusline_indicator = true
+
+	-- NOTE: it will cause check error if uncomment,
+	-- with vim-gutentags, the database file will be placed at ~/code/.gutentags/ without this command:
+	-- vim.cmd("cd " .. db_root)
 
 	if M.opts.exec == "cscope" then
 		table.insert(db_build_cmd_args, "-f")
@@ -310,7 +314,7 @@ M.db_build = function()
 		else
 			return vim.fn.filereadable(path) == 1
 		end
-  end
+	end
 
 	local function handle_spawn(command, message, on_complete)
 		local handle
@@ -369,7 +373,7 @@ M.db_build = function()
 			log.warn(command.msg .. " skipped (check failed).")
 			try_next_command(commands, index + 1)
 		end
-  end
+	end
 
 	local commands = {
 		{

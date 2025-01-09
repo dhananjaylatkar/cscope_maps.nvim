@@ -110,8 +110,10 @@ M.parse_line = function(line, db_pre_path)
 	local sp = vim.split(line, "%s+")
 
 	t.filename = sp[1]
-	-- in case of "-t" and "-e" pre_path is already present
-	if db_pre_path and not vim.startswith(t.filename, db_pre_path) then
+	-- prepend db_pre_path when both of following are true -
+	-- 1. relative path is used for filename
+	-- 2. db_pre_path is not present in filename
+	if db_pre_path and not utils.is_path_abs(t.filename) and not vim.startswith(t.filename, db_pre_path) then
 		t.filename = vim.fs.joinpath(db_pre_path, t.filename)
 	end
 	t.filename = utils.get_rel_path(vim.fn.getcwd(), t.filename)

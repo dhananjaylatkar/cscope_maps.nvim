@@ -116,6 +116,21 @@ M.remove = function(path)
 	end
 end
 
+---Update DB connections
+---@param op string Operation (add/remove)
+---@param files table list of files
+M.update = function(op, files)
+	if op == "a" then
+		for _, f in ipairs(files) do
+			M.add(f)
+		end
+	elseif op == "r" then
+		for _, f in ipairs(files) do
+			M.remove(f)
+		end
+	end
+end
+
 M.print_conns = function()
 	if not M.conns then
 		log.warn("No connections")

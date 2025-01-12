@@ -273,18 +273,6 @@ M.cstag = function(symbol)
 	return RC.NO_RESULTS
 end
 
-M.db_update = function(op, files)
-	if op == "a" then
-		for _, f in ipairs(files) do
-			db.add(f)
-		end
-	elseif op == "r" then
-		for _, f in ipairs(files) do
-			db.remove(f)
-		end
-	end
-end
-
 M.default_sym = function(op)
 	local sym = ""
 	if vim.fn.mode() == "v" then
@@ -353,7 +341,7 @@ M.run = function(args)
 				table.insert(files, args[i])
 			end
 
-			M.db_update(op, files)
+			db.update(op, files)
 		elseif op == "s" then
 			db.print_conns()
 		else

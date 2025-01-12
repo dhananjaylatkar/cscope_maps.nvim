@@ -35,7 +35,11 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - `:Cs db add <space sepatated files>` add db file(s) to cscope search.
 - `:Cs db rm <space sepatated files>` remove db file(s) from cscope search.
 - `:Cs db show` show all db connections.
-- `:Cs db build` (re)builds db for primary db.
+- `:Cs db build` (re)builds db.
+  - if `db_build_cmd.script == "default"` then only primary DB will be built using cscope binary.
+  - Custom script can be provided. This script with predefined args.
+    e.g. user script will be called as following -
+    `/user/provided/script -d <db1>::<pre_path1> -d <db2>::<pre_path2> ...`
 - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
 - DB path grammar
   - `db_file::db_pre_path` db_pre_path (prefix path) will be appended to cscope results.
@@ -108,8 +112,8 @@ _cscope_maps_ comes with following defaults:
     qf_window_pos = "bottom", -- "bottom", "right", "left" or "top"
     -- "true" does not open picker for single result, just JUMP
     skip_picker_for_single_result = false, -- "false" or "true"
-    -- these args are directly passed to "cscope -f <db_file> <args>"
-    db_build_cmd_args = { "-bqkv" },
+    -- custom script can be used for db build
+	db_build_cmd = { script = "default", args = { "-bqkv" } },
     -- statusline indicator, default is cscope executable
     statusline_indicator = nil,
     -- try to locate db_file in parent dir(s)
@@ -212,4 +216,3 @@ under cursor
 ```lua
 vim.keymap.set({ "n", "v" }, "<C-c><C-g>", "<cmd>Cs f g<cr>")
 ```
-

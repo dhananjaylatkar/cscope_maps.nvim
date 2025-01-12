@@ -17,7 +17,7 @@ local M = {}
 ---@field qf_window_size? integer
 ---@field qf_window_pos? string
 ---@field skip_picker_for_single_result? boolean
----@field db_build_cmd_args? table
+---@field db_build_cmd? table
 ---@field statusline_indicator? string|nil
 ---@field project_rooter? CsProjectRooterConfig
 M.opts = {
@@ -27,7 +27,7 @@ M.opts = {
 	qf_window_size = 5,
 	qf_window_pos = "bottom",
 	skip_picker_for_single_result = false,
-	db_build_cmd_args = { "-bqkv" },
+	db_build_cmd = { script = "default", args = { "-bqkv" } },
 	statusline_indicator = nil,
 	project_rooter = {
 		enable = false,
@@ -273,63 +273,6 @@ M.cstag = function(symbol)
 	return RC.NO_RESULTS
 end
 
-M.db_build_output = function(err, data)
-	if err then
-		print("cscope: [build] err: " .. err)
-	end
-	if data then
-		print("cscope: [build] out: " .. data)
-	end
-end
-
-M.db_build = function()
-	local stdout = vim.loop.new_pipe(false)
-	local stderr = vim.loop.new_pipe(false)
-	local db_build_cmd_args = vim.tbl_deep_extend("force", M.opts.db_build_cmd_args, {})
-	local cur_path = vim.fn.getcwd()
-	local db_conn = db.primary_conn() -- TODO: extend support to all db conns
-	local db_file = db_conn.file
-	local db_root = utils.get_path_parent(db_file)
-
-	if vim.g.cscope_maps_statusline_indicator then
-		log.warn("db build is already in progress")
-		return
-	end
-
-	if M.opts.exec == "cscope" then
-		table.insert(db_build_cmd_args, "-f")
-		table.insert(db_build_cmd_args, db_file)
-	end
-
-	vim.cmd("cd " .. db_root)
-
-	local handle = nil
-	vim.g.cscope_maps_statusline_indicator = M.opts.statusline_indicator or M.opts.exec
-	handle = vim.loop.spawn(
-		M.opts.exec,
-		{
-			args = db_build_cmd_args,
-			stdio = { nil, stdout, stderr },
-		},
-		vim.schedule_wrap(function(code, _) -- on exit
-			stdout:read_stop()
-			stderr:read_stop()
-			stdout:close()
-			stderr:close()
-			handle:close()
-			if code == 0 then
-				log.info("database built successfully")
-			else
-				log.warn("database build failed")
-			end
-			vim.g.cscope_maps_statusline_indicator = nil
-			vim.cmd("cd " .. cur_path)
-		end)
-	)
-	vim.loop.read_start(stdout, M.db_build_output)
-	vim.loop.read_start(stderr, M.db_build_output)
-end
-
 M.db_update = function(op, files)
 	if op == "a" then
 		for _, f in ipairs(files) do
@@ -402,7 +345,7 @@ M.run = function(args)
 
 		local op = args[2]:sub(1, 1)
 		if op == "b" then
-			M.db_build()
+			db.build(M.opts)
 		elseif op == "a" or op == "r" then
 			-- collect all args
 			local files = {}
@@ -572,6 +515,21 @@ M.setup = function(opts)
 		for _, f in ipairs(M.opts.db_file) do
 			db.add(f)
 		end
+	end
+
+	if vim.fn.executable(M.opts.db_build_cmd.script) ~= 1 then
+		log.warn("db_build script is not found. Using default")
+		M.opts.db_build_cmd.script = "default"
+	end
+
+	if M.opts.db_build_cmd_args then
+		M.opts.db_build_cmd.args = M.opts.db_build_cmd_args
+		log.warn(
+			string.format(
+				[[db_build_cmd_args is deprecated. Use 'db_build_cmd = { args = %s }']],
+				vim.inspect(M.opts.db_build_cmd_args)
+			)
+		)
 	end
 
 	-- if project rooter is enabled,

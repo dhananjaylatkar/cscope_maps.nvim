@@ -132,4 +132,55 @@ M.print_conns = function()
 	end
 end
 
+---Create command to build DB
+---1. If script is default then use opt.exec
+---2. If custom script is provided then use that with "-d <db>::<pre_path>" args
+M.get_build_cmd = function(opts)
+	local cmd = {}
+
+	if opts.db_build_cmd.script == "default" then
+		if opts.exec == "cscope" then
+			cmd = { "cscope", "-f", M.primary_conn().file }
+		else -- "gtags-cscope"
+			cmd = { "gtags-cscope" }
+		end
+
+		vim.list_extend(cmd, opts.db_build_cmd.args)
+		return cmd
+	end
+
+	-- custom script
+	cmd = { opts.db_build_cmd.script }
+	vim.list_extend(cmd, opts.db_build_cmd.args)
+
+	for _, conn in ipairs(M.conns) do
+		vim.list_extend(cmd, { "-d", string.format("%s::%s", conn.file, conn.pre_path) })
+	end
+
+	return cmd
+end
+
+M.build = function(opts)
+	if vim.g.cscope_maps_statusline_indicator then
+		log.warn("db build is already in progress")
+		return
+	end
+
+	local cmd = M.get_build_cmd(opts)
+
+	local on_exit = function(obj)
+		vim.g.cscope_maps_statusline_indicator = nil
+		if obj.code == 0 then
+			-- print("cscope: [build] out: " .. obj.stdout)
+			print("cscope: database built successfully")
+		else
+			-- print("cscope: [build] out: " .. obj.stderr)
+			print("cscope: database build failed")
+		end
+	end
+
+	vim.g.cscope_maps_statusline_indicator = opts.statusline_indicator or opts.exec
+	vim.system(cmd, { text = true }, on_exit)
+end
+
 return M

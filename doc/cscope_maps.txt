@@ -55,10 +55,11 @@ CSCOPE DB ~
 - `:Cs db rm <space sepatated files>` remove db file(s) from cscope search.
 - `:Cs db show` show all db connections.
 - `:Cs db build` (re)builds db.
-    - if `db_build_cmd.script == "default"` then only primary DB will be built using cscope binary.
-    - Custom script can be provided. This script with predefined args.
-        e.g. user script will be called as following -
-        `/user/provided/script -d <db1>::<pre_path1> -d <db2>::<pre_path2> ...`
+    - If `db_build_cmd.script == "default"` then only primary DB will be built using cscope binary.
+        - e.g. `cscope -f ${db_file} ${db_build_cmd.args}` OR `gtags-cscope ${db_build_cmd.args}`
+    - Custom script can be provided using `db_build_cmd.script`. Example script is here <https://github.com/dhananjaylatkar/cscope_maps.nvim/pull/67>
+        - e.g. user script will be called as following -
+        - `${db_build_cmd.script} ${db_build_cmd.args} -d <db1>::<pre_path1> -d <db2>::<pre_path2> ...`
 - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
 - DB path grammar
     - `db_file::db_pre_path` db_pre_path (prefix path) will be appended to cscope results.

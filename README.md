@@ -114,7 +114,7 @@ _cscope_maps_ comes with following defaults:
     -- "true" does not open picker for single result, just JUMP
     skip_picker_for_single_result = false, -- "false" or "true"
     -- custom script can be used for db build
-	db_build_cmd = { script = "default", args = { "-bqkv" } },
+    db_build_cmd = { script = "default", args = { "-bqkv" } },
     -- statusline indicator, default is cscope executable
     statusline_indicator = nil,
     -- try to locate db_file in parent dir(s)

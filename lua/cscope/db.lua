@@ -175,6 +175,17 @@ M.get_build_cmd = function(opts)
 	return cmd
 end
 
+local on_exit = function(obj)
+	vim.g.cscope_maps_statusline_indicator = nil
+	if obj.code == 0 then
+		-- print("cscope: [build] out: " .. obj.stdout)
+		print("cscope: database built successfully")
+	else
+		-- print("cscope: [build] out: " .. obj.stderr)
+		print("cscope: database build failed")
+	end
+end
+
 M.build = function(opts)
 	if vim.g.cscope_maps_statusline_indicator then
 		log.warn("db build is already in progress")
@@ -182,17 +193,6 @@ M.build = function(opts)
 	end
 
 	local cmd = M.get_build_cmd(opts)
-
-	local on_exit = function(obj)
-		vim.g.cscope_maps_statusline_indicator = nil
-		if obj.code == 0 then
-			-- print("cscope: [build] out: " .. obj.stdout)
-			print("cscope: database built successfully")
-		else
-			-- print("cscope: [build] out: " .. obj.stderr)
-			print("cscope: database build failed")
-		end
-	end
 
 	vim.g.cscope_maps_statusline_indicator = opts.statusline_indicator or opts.exec
 	vim.system(cmd, { text = true }, on_exit)

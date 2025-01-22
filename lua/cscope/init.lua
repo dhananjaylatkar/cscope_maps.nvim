@@ -506,7 +506,6 @@ M.setup = function(opts)
 	end
 
 	if vim.fn.executable(M.opts.db_build_cmd.script) ~= 1 then
-		log.warn("db_build script is not found. Using default")
 		M.opts.db_build_cmd.script = "default"
 	end
 

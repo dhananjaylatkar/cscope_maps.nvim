@@ -154,6 +154,7 @@ M.get_build_cmd = function(opts)
 	local cmd = {}
 
 	if opts.db_build_cmd.script == "default" then
+		log.info("Using default db_build script")
 		if opts.exec == "cscope" then
 			cmd = { "cscope", "-f", M.primary_conn().file }
 		else -- "gtags-cscope"

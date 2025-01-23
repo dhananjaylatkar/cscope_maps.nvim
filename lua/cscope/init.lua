@@ -505,9 +505,9 @@ M.setup = function(opts)
 		end
 	end
 
-	if vim.fn.executable(M.opts.db_build_cmd.script) ~= 1 then
-		log.warn("db_build script is not found. Using default")
-		M.opts.db_build_cmd.script = "default"
+	if M.opts.db_build_cmd.script ~= "default" and vim.fn.executable(M.opts.db_build_cmd.script) ~= 1 then
+		log.warn(string.format("db_build script(%s) not found. Using default", M.opts.db_build_cmd.script))
+		M.opts.db_build_cmd = { script = "default", args = { "-bqkv" } }
 	end
 
 	if M.opts.db_build_cmd_args then

@@ -59,6 +59,38 @@ M.buf_unlock = function(buf)
 	api.nvim_set_option_value("modifiable", true, { buf = buf })
 end
 
+M.pv_scroll = function(dir)
+	local input = dir > 0 and [[]] or [[]]
+
+	return function()
+		vim.api.nvim_win_call(M.cache.pv.win, function()
+			vim.cmd([[normal! ]] .. input)
+		end)
+	end
+end
+
+M.set_keymaps = function()
+	local opts = { buffer = M.cache.sv.buf, silent = true }
+
+	-- close window
+	vim.keymap.set("n", "q", M.toggle_win, opts)
+	vim.keymap.set("n", "<esc>", M.toggle_win, opts)
+
+	-- toggle children
+	vim.keymap.set("n", "<tab>", M.toggle_children, opts)
+
+	-- open location under cursor
+	vim.keymap.set("n", "<cr>", M.enter_action, opts)
+
+	-- scroll up
+	vim.keymap.set("n", "<C-u>", M.pv_scroll(-1), opts)
+	vim.keymap.set("n", "<C-y>", M.pv_scroll(-1), opts)
+
+	-- scroll down
+	vim.keymap.set("n", "<C-d>", M.pv_scroll(1), opts)
+	vim.keymap.set("n", "<C-e>", M.pv_scroll(1), opts)
+end
+
 M.buf_open = function()
 	local vim_height = vim.o.lines
 	local vim_width = vim.o.columns
@@ -101,6 +133,8 @@ M.buf_open = function()
 		})
 	api.nvim_set_option_value("filetype", M.ft, { buf = M.cache.sv.buf })
 	api.nvim_set_option_value("cursorline", true, { win = M.cache.sv.win })
+
+	M.set_keymaps()
 end
 
 M.buf_close = function()
@@ -147,12 +181,6 @@ M.buf_update = function()
 		buf_last_pos = nil
 	end
 	M.buf_lock(M.cache.sv.buf)
-
-	local keymap_opt = { buffer = M.cache.sv.buf, silent = true }
-	vim.keymap.set("n", "q", M.toggle_win, keymap_opt)
-	vim.keymap.set("n", "<esc>", M.toggle_win, keymap_opt)
-	vim.keymap.set("n", "<tab>", M.toggle_children, keymap_opt)
-	vim.keymap.set("n", "<cr>", M.enter_action, keymap_opt)
 
 	local augroup = api.nvim_create_augroup("CscopeMaps", {})
 	api.nvim_create_autocmd({ "BufLeave" }, {

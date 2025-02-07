@@ -56,7 +56,9 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - In `CsStackView` window, use following keymaps
   - `<tab>` toggle child under cursor
   - `<cr>` open location of symbol under cursor
-  - `q` close window
+  - `q` or `<esc>` close window
+  - `<C-u>` or `<C-y>` scroll up preview
+  - `<C-d>` or `<C-e>` scroll down preview
 - `:CsStackView toggle` reopens last `CsStackView` window.
 - In `CsStackView` window, all nodes that are part of current stack are highlighted.
 

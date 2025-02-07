@@ -1,4 +1,4 @@
-*cscope_maps.txt*      For Neovim >= v0.10.0      Last change: 2025 January 12
+*cscope_maps.txt*      For Neovim >= v0.10.0     Last change: 2025 February 07
 
 ==============================================================================
 Table of Contents                              *cscope_maps-table-of-contents*
@@ -76,7 +76,9 @@ STACK VIEW ~
 - In `CsStackView` window, use following keymaps
     - `<tab>` toggle child under cursor
     - `<cr>` open location of symbol under cursor
-    - `q` close window
+    - `q` or `<esc>` close window
+    - `<C-u>` or `<C-y>` scroll up preview
+    - `<C-d>` or `<C-e>` scroll down preview
 - `:CsStackView toggle` reopens last `CsStackView` window.
 - In `CsStackView` window, all nodes that are part of current stack are highlighted.
 

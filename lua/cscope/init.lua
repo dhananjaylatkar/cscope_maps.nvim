@@ -193,27 +193,26 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 	local out = ""
 	local res = {}
 
+	local exec_and_update_res = function(_db_con, _cmd_args)
+		if vim.loop.fs_stat(_db_con.file) == nil then
+			return
+		end
+
+		local _cmd = string.format("%s -f %s -P %s %s", cmd, _db_con.file, _db_con.pre_path, _cmd_args)
+		out = M.cmd_exec(_cmd)
+		res = vim.list_extend(res, M.parse_output(out, _db_con.pre_path))
+	end
+
 	if M.opts.exec == "cscope" then
 		for _, db_con in ipairs(db_conns) do
-			local db_file, db_pre_path = db_con.file, db_con.pre_path
-			if vim.loop.fs_stat(db_file) ~= nil then
-				local _cmd = string.format("%s -f %s -P %s", cmd, db_file, db_pre_path)
-				out = M.cmd_exec(_cmd)
-				res = vim.list_extend(res, M.parse_output(out, db_pre_path))
-			end
+			exec_and_update_res(db_con, "")
 		end
 	elseif M.opts.exec == "gtags-cscope" then
-		if vim.loop.fs_stat(gtags_db) == nil then
-			log.warn(gtags_db .. " file not found", hide_log)
-			return RC.DB_NOT_FOUND, nil
-		end
 		if op_s == "d" then
 			log.warn("'d' operation is not available for " .. M.opts.exec, hide_log)
 			return RC.INVALID_OP, nil
 		end
-
-		out = M.cmd_exec(cmd)
-		res = vim.list_extend(res, M.parse_output(out, db_pre_path))
+		exec_and_update_res(db.primary_conn(), "-a")
 	else
 		log.warn("'" .. M.opts.exec .. "' executable is not supported", hide_log)
 		return RC.INVALID_EXEC, nil

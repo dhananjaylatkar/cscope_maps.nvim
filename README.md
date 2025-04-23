@@ -110,10 +110,12 @@ _cscope_maps_ comes with following defaults:
     exec = "cscope", -- "cscope" or "gtags-cscope"
     -- choose your fav picker
     picker = "quickfix", -- "quickfix", "location", "telescope", "fzf-lua", "mini-pick" or "snacks"
-    -- size of quickfix window
-    qf_window_size = 5, -- any positive integer
-    -- position of quickfix window
-    qf_window_pos = "bottom", -- "bottom", "right", "left" or "top"
+    -- qf_window_size = 5, -- deprecated, replaced by picket_opts below, but still supported for backward compatibility
+    -- qf_window_pos = "bottom", -- deprecated, replaced by picket_opts below, but still supported for backward compatibility
+    picker_opts = {
+      window_size = 5, -- any positive integer
+      window_pos = "bottom", -- "bottom", "right", "left" or "top"
+    },
     -- "true" does not open picker for single result, just JUMP
     skip_picker_for_single_result = false, -- "false" or "true"
     -- custom script can be used for db build

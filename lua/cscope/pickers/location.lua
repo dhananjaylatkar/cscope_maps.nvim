@@ -1,22 +1,22 @@
 local M = {}
 
 M.run = function(opts)
-	local pos
+	local pos_cmd = ""
 
 	vim.fn.setloclist(0, opts.cscope.parsed_output, "r")
 	vim.fn.setloclist(0, {}, "a", { title = opts.cscope.prompt_title })
 
-	if opts.cscope.qf_window_pos == "top" then
-		pos = "topleft"
-	elseif opts.cscope.qf_window_pos == "bottom" then
-		pos = "botright"
-	elseif opts.cscope.qf_window_pos == "right" then
-		pos = "botright vertical"
-	elseif opts.cscope.qf_window_pos == "left" then
-		pos = "topleft vertical"
+	if opts.cscope.picker_opts.window_pos == "top" then
+		pos_cmd = "aboveleft"
+	elseif opts.cscope.picker_opts.window_pos == "bottom" then
+		pos_cmd = "belowright"
+	elseif opts.cscope.picker_opts.window_pos == "right" then
+		pos_cmd = "belowright vertical"
+	elseif opts.cscope.picker_opts.window_pos == "left" then
+		pos_cmd = "aboveleft vertical"
 	end
 
-	vim.cmd(pos .. " lopen " .. opts.cscope.qf_window_size)
+	vim.cmd(pos_cmd .. " lopen " .. opts.cscope.picker_opts.window_size)
 end
 
 return M

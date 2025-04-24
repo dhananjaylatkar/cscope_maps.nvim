@@ -75,28 +75,4 @@ M.update_node = function(root, parent_id, children)
 	return nil
 end
 
-M.get_ancestors = function(root, node_id)
-	if root.id == node_id then
-		return { root.id }
-	end
-
-	local st = { { root } }
-	while #st ~= 0 do
-		local cur_path = table.remove(st, 1)
-		local cur_node = cur_path[#cur_path]
-		if cur_node.children then
-			for _, c in ipairs(cur_node.children) do
-				table.insert(cur_path, c)
-				if c.id == node_id then
-					return vim.tbl_map(function(x)
-						return x.id
-					end, cur_path)
-				end
-				table.insert(st, vim.deepcopy(cur_path))
-				table.remove(cur_path)
-			end
-		end
-	end
-end
-
 return M

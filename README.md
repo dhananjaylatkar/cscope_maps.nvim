@@ -25,7 +25,7 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
 - Keymaps can be disabled using `disable_maps` option.
 - `:CsPrompt <op>` can be used to invoke cscope prompt.
-- Display results in quickfix, **telescope**, **fzf-lua**, **mini.pick** or **snacks.nvim**.
+- Display results in quickfix list, location list, **telescope**, **fzf-lua**, **mini.pick** or **snacks.nvim**.
 - Has [which-key.nvim](https://github.com/folke/which-key.nvim) and [mini.clue](https://github.com/echasnovski/mini.clue) hints.
 - See [this section](#vim-gutentags) for `vim-gutentags`.
 
@@ -109,11 +109,13 @@ _cscope_maps_ comes with following defaults:
     -- cscope executable
     exec = "cscope", -- "cscope" or "gtags-cscope"
     -- choose your fav picker
-    picker = "quickfix", -- "quickfix", "telescope", "fzf-lua", "mini-pick" or "snacks"
-    -- size of quickfix window
-    qf_window_size = 5, -- any positive integer
-    -- position of quickfix window
-    qf_window_pos = "bottom", -- "bottom", "right", "left" or "top"
+    picker = "quickfix", -- "quickfix", "location", "telescope", "fzf-lua", "mini-pick" or "snacks"
+    -- qf_window_size = 5, -- deprecated, replaced by picket_opts below, but still supported for backward compatibility
+    -- qf_window_pos = "bottom", -- deprecated, replaced by picket_opts below, but still supported for backward compatibility
+    picker_opts = {
+      window_size = 5, -- any positive integer
+      window_pos = "bottom", -- "bottom", "right", "left" or "top"
+    },
     -- "true" does not open picker for single result, just JUMP
     skip_picker_for_single_result = false, -- "false" or "true"
     -- custom script can be used for db build

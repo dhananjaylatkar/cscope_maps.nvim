@@ -10,12 +10,14 @@ local M = {}
 ---@field enable? boolean
 ---@field change_cwd? boolean
 
+---@class CsPicketOpts
+---@field window_size? integer
+---@field window_pos? string
+
 ---@class CsConfig
 ---@field db_file? string|[string]
 ---@field exec? string
 ---@field picker? string
----@field qf_window_size? integer
----@field qf_window_pos? string
 ---@field skip_picker_for_single_result? boolean
 ---@field db_build_cmd? table
 ---@field statusline_indicator? string|nil
@@ -24,8 +26,10 @@ M.opts = {
 	db_file = "./cscope.out",
 	exec = "cscope",
 	picker = "quickfix",
-	qf_window_size = 5,
-	qf_window_pos = "bottom",
+	picker_opts = {
+		window_size = 5,
+		window_pos = "bottom",
+	},
 	skip_picker_for_single_result = false,
 	db_build_cmd = { script = "default", args = { "-bqkv" } },
 	statusline_indicator = nil,
@@ -170,6 +174,8 @@ M.open_picker = function(op_s, symbol, parsed_output)
 	picker_opts.cscope = {}
 	picker_opts.cscope.parsed_output = parsed_output
 	picker_opts.cscope.prompt_title = title
+	picker_opts.cscope.picker_opts = M.opts.picker_opts
+	-- backward compatibility for qf_window_pos and qf_window_size
 	picker_opts.cscope.qf_window_size = M.opts.qf_window_size
 	picker_opts.cscope.qf_window_pos = M.opts.qf_window_pos
 

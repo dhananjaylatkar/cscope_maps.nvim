@@ -261,6 +261,67 @@ M.find = function(op, symbol)
 	return RC.NO_RESULTS
 end
 
+-- get lnum and text of tag
+-- returns list of all occurrences of tag
+M.tag_get_info = function(tag)
+	local res = {}
+	local bin = ""
+	if vim.fn.executable("rg") then
+		bin = "rg"
+	elseif vim.fn.executable("grep") then
+		bin = "grep"
+	end
+
+	if bin == "" then
+		return {}
+	end
+
+	-- remove leading and trailing "/" because "cmd" is Ex cmd for vim
+	local filter = string.gsub(tag.cmd, "^/", "")
+	filter = string.gsub(filter, "/$", "")
+
+	local proc = vim.system({ bin, "-n", filter, tag.filename }, { text = true }):wait()
+
+	if proc.code ~= 0 then
+		return {}
+	end
+
+	local lines = vim.split(proc.stdout, "\n")
+	for _, line in ipairs(lines) do
+		local sp = vim.split(line, ":")
+		if #sp == 2 then
+			table.insert(res, { lnum = sp[1], text = sp[2] })
+		end
+	end
+
+	return res
+end
+
+-- parse taglist for give sym
+-- returns same format as cscope parse_output
+M.get_tags = function(sym)
+	-- don't use custom picker for help tags
+	if vim.bo.filetype == "help" then
+		return {}
+	end
+
+	local tags = vim.fn.taglist(string.format("^%s$", sym))
+	local res = {}
+
+	for _, tag in ipairs(tags) do
+		local info = M.tag_get_info(tag)
+		for _, info_item in ipairs(info) do
+			local item = {}
+			item.filename = tag.filename
+			item.ctx = string.format("<<%s>>", tag.name)
+			item.lnum = info_item.lnum
+			item.text = string.format("%s %s", item.ctx, info_item.text)
+			table.insert(res, item)
+		end
+	end
+	return res
+end
+
 M.cstag = function(symbol)
 	local op = "g"
 	-- if symbol is not provided use cword
@@ -270,7 +331,12 @@ M.cstag = function(symbol)
 	if ok == RC.SUCCESS then
 		return M.open_picker(op, symbol, res)
 	end
-	-- log.info("trying tags...")
+
+	res = M.get_tags(symbol)
+	if #res ~= 0 then
+		return M.open_picker("tags", symbol, res)
+	end
+
 	if not pcall(vim.cmd.tjump, symbol) then
 		log.warn("Vim(tag):E426: tag not found: " .. symbol)
 		return RC.NO_RESULTS

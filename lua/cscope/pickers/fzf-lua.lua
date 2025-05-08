@@ -21,7 +21,7 @@ end
 M.run = function(opts)
 	local entries = prepare(opts.cscope.parsed_output)
 	local _config = { prompt = opts.cscope.prompt_title .. "> " }
-	_config = config.normalize_opts(_config, config.globals.files)
+	_config = config.normalize_opts(_config, "grep")
 	require("fzf-lua").fzf_exec(entries, _config)
 end
 

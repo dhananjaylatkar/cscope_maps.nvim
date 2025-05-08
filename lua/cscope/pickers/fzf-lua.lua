@@ -1,5 +1,4 @@
 local config = require("fzf-lua.config")
-local ansi_codes = require("fzf-lua.utils").ansi_codes
 local make_entry = require("fzf-lua.make_entry")
 
 local M = {}
@@ -10,8 +9,8 @@ local prepare = function(parsed_output)
 	for _, entry in ipairs(parsed_output) do
 		local _entry = ("%s:%s:%s"):format(
 			make_entry.file(entry["filename"], { file_icons = true, color_icons = true }),
-			ansi_codes.green(entry["lnum"]),
-			ansi_codes.magenta(entry["text"])
+			entry["lnum"],
+			entry["text"]
 		)
 
 		table.insert(res, _entry)

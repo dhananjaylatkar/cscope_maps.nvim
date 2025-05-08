@@ -280,6 +280,11 @@ M.tag_get_info = function(tag)
 	local filter = string.gsub(tag.cmd, "^/", "")
 	filter = string.gsub(filter, "/$", "")
 
+	-- escape shell chars
+	filter = filter:gsub("[\\~?*|{\\[()%-%.%+]", function(x)
+		return "\\" .. x
+	end)
+
 	local proc = vim.system({ bin, "-n", filter, tag.filename }, { text = true }):wait()
 
 	if proc.code ~= 0 then

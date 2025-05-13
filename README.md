@@ -128,6 +128,12 @@ _cscope_maps_ comes with following defaults:
       -- change cwd to where db_file is located
       change_cwd = false, -- "true" or "false"
     },
+    -- cstag related defaults
+    tag = {
+      enable = true, -- "true" or "false"
+      -- order of operation to run for ":Cstag"
+      order = { "cs", "tag_picker", "tag" }, -- any combination of these 3
+    },
   },
 
   -- stack view defaults

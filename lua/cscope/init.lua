@@ -37,6 +37,10 @@ M.opts = {
 		enable = false,
 		change_cwd = false,
 	},
+	tag = {
+		enable = true,
+		order = { "cs", "tag_picker", "tag" },
+	},
 }
 
 M.user_opts = {}
@@ -335,21 +339,26 @@ M.cstag = function(symbol)
 	-- if symbol is not provided use cword
 	symbol = symbol or M.default_sym(op)
 
-	local ok, res = M.get_result(M.op_s_n[op], op, symbol, true)
-	if ok == RC.SUCCESS then
-		return M.open_picker(op, symbol, res)
+	for _, tag in ipairs(M.opts.tag.order) do
+		if tag == "cs" then
+			local ok, res = M.get_result(M.op_s_n[op], op, symbol, true)
+			if ok == RC.SUCCESS then
+				M.open_picker(op, symbol, res)
+				return
+			end
+		elseif tag == "tag_picker" then
+			local res = M.get_tags(symbol)
+			if #res ~= 0 then
+				M.open_picker("tags", symbol, res)
+				return
+			end
+		elseif tag == "tag" then
+			if pcall(vim.cmd.tjump, symbol) then
+				return
+			end
+			log.warn("Vim(tag):E426: tag not found: " .. symbol)
+		end
 	end
-
-	res = M.get_tags(symbol)
-	if #res ~= 0 then
-		return M.open_picker("tags", symbol, res)
-	end
-
-	if not pcall(vim.cmd.tjump, symbol) then
-		log.warn("Vim(tag):E426: tag not found: " .. symbol)
-		return RC.NO_RESULTS
-	end
-	return RC.NO_RESULTS
 end
 
 M.default_sym = function(op)
@@ -534,12 +543,15 @@ M.user_command = function()
 		complete = M.cmd_cmp,
 	})
 
-	-- Create the :Cstag user command
-	vim.api.nvim_create_user_command("Cstag", function(opts)
-		M.cstag(unpack(opts.fargs))
-	end, {
-		nargs = "*",
-	})
+	-- Create the :Cstag user command and bind it to "C-]"
+	if M.opts.tag.enable == true then
+		vim.api.nvim_create_user_command("Cstag", function(opts)
+			M.cstag(unpack(opts.fargs))
+		end, {
+			nargs = "*",
+		})
+		vim.keymap.set({ "n", "v" }, "<C-]>", "<cmd>Cstag<cr>", { desc = "cstag" })
+	end
 end
 
 M.reload = function()

@@ -39,7 +39,6 @@ M.default_keymaps = function(prefix)
 	map({ "n", "v" }, prefix .. "d", "<cmd>CsPrompt d<cr>", { desc = sym_map.d })
 	map({ "n", "v" }, prefix .. "a", "<cmd>CsPrompt a<cr>", { desc = sym_map.a })
 	map({ "n", "v" }, prefix .. "b", "<cmd>Cs db build<cr>", { desc = sym_map.b })
-	map({ "n", "v" }, "<C-]>", "<cmd>Cstag<cr>", { noremap = true, silent = true, desc = "ctag" })
 end
 
 return M

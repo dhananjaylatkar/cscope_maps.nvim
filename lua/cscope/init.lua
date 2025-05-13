@@ -183,42 +183,45 @@ M.open_picker = function(op_s, symbol, parsed_output)
 	return RC.SUCCESS
 end
 
-M.cmd_exec = function(cmd)
-	local file = assert(io.popen(cmd, "r"))
-	file:flush()
-	local output = file:read("*all")
-	file:close()
-	return output
-end
-
 M.get_result = function(op_n, op_s, symbol, hide_log)
 	-- Executes cscope search and return parsed output
 
 	local db_conns = db.all_conns()
-	local cmd = string.format("%s -dL -%s %s", M.opts.exec, op_n, symbol)
-	local out = ""
 	local res = {}
 
 	local exec_and_update_res = function(_db_con, _cmd_args)
 		if vim.loop.fs_stat(_db_con.file) == nil then
 			return
 		end
+		local cmd = {
+			M.opts.exec,
+			"-dL",
+			"-" .. op_n,
+			symbol,
+			"-f",
+			_db_con.file,
+			"-P",
+			_db_con.pre_path,
+		}
+		cmd = vim.list_extend(cmd, _cmd_args)
+		local proc = vim.system(cmd, { text = true }):wait()
+		if proc.code ~= 0 then
+			return
+		end
 
-		local _cmd = string.format("%s -f %s -P %s %s", cmd, _db_con.file, _db_con.pre_path, _cmd_args)
-		out = M.cmd_exec(_cmd)
-		res = vim.list_extend(res, M.parse_output(out, _db_con.pre_path))
+		res = vim.list_extend(res, M.parse_output(proc.stdout, _db_con.pre_path))
 	end
 
 	if M.opts.exec == "cscope" then
 		for _, db_con in ipairs(db_conns) do
-			exec_and_update_res(db_con, "")
+			exec_and_update_res(db_con, {})
 		end
 	elseif M.opts.exec == "gtags-cscope" then
 		if op_s == "d" then
 			log.warn("'d' operation is not available for " .. M.opts.exec, hide_log)
 			return RC.INVALID_OP, nil
 		end
-		exec_and_update_res(db.primary_conn(), "-a")
+		exec_and_update_res(db.primary_conn(), { "-a" })
 	else
 		log.warn("'" .. M.opts.exec .. "' executable is not supported", hide_log)
 		return RC.INVALID_EXEC, nil

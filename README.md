@@ -130,9 +130,12 @@ _cscope_maps_ comes with following defaults:
     },
     -- cstag related defaults
     tag = {
-      enable = true, -- "true" or "false"
+      -- bind ":Cstag" to "<C-]>"
+      keymap = true, -- "true" or "false"
       -- order of operation to run for ":Cstag"
-      order = { "cs", "tag_picker", "tag" }, -- any combination of these 3
+      order = { "cs", "tag_picker", "tag" }, -- any combination of these 3 (ops can be excluded)
+      -- cmd to use for "tag" op in above table
+      tag_cmd = "tjump",
     },
   },
 

@@ -38,8 +38,9 @@ M.opts = {
 		change_cwd = false,
 	},
 	tag = {
-		enable = true,
+		keymap = true,
 		order = { "cs", "tag_picker", "tag" },
+		tag_cmd = "tjump",
 	},
 }
 
@@ -353,10 +354,11 @@ M.cstag = function(symbol)
 				return
 			end
 		elseif tag == "tag" then
-			if pcall(vim.cmd.tjump, symbol) then
+			local ok, msg = pcall(vim.cmd, { cmd = M.opts.tag.tag_cmd, args = { symbol } })
+			if ok then
 				return
 			end
-			log.warn("Vim(tag):E426: tag not found: " .. symbol)
+			log.warn(msg)
 		end
 	end
 end
@@ -543,13 +545,14 @@ M.user_command = function()
 		complete = M.cmd_cmp,
 	})
 
-	-- Create the :Cstag user command and bind it to "C-]"
-	if M.opts.tag.enable == true then
-		vim.api.nvim_create_user_command("Cstag", function(opts)
-			M.cstag(unpack(opts.fargs))
-		end, {
-			nargs = "*",
-		})
+	-- Create the :Cstag user command
+	vim.api.nvim_create_user_command("Cstag", function(opts)
+		M.cstag(unpack(opts.fargs))
+	end, {
+		nargs = "*",
+	})
+	-- Bind :Cstag to "<C-]>"
+	if M.opts.tag.keymap == true then
 		vim.keymap.set({ "n", "v" }, "<C-]>", "<cmd>Cstag<cr>", { desc = "cstag" })
 	end
 end

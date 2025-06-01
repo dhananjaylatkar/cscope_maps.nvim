@@ -401,17 +401,6 @@ M.run = function(args)
 			symbol = symbol .. " " .. args[i]
 		end
 
-		-- escape commonly used special chars
-		symbol = symbol:gsub("([%s\"%'%(%)><])", {
-			[" "] = "\\ ",
-			['"'] = '\\"',
-			["'"] = "\\'",
-			["("] = "\\(",
-			[")"] = "\\)",
-			[">"] = "\\>",
-			["<"] = "\\<",
-		})
-
 		M.find(op, symbol)
 	elseif cmd:sub(1, 1) == "b" then
 		log.warn("':Cs build' is deprecated. Use ':Cs db build'")

@@ -5,7 +5,7 @@ M.run = function(opts)
 	local window_size = opts.cscope.qf_window_size or opts.cscope.picker_opts.window_size
 	local window_pos = opts.cscope.qf_window_pos or opts.cscope.picker_opts.window_pos
 
-	vim.fn.setqflist(opts.cscope.parsed_output, "r")
+	vim.fn.setqflist(opts.cscope.parsed_output)
 	vim.fn.setqflist({}, "a", { title = opts.cscope.prompt_title })
 
 	if window_pos == "top" then

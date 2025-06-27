@@ -3,7 +3,7 @@ local M = {}
 M.run = function(opts)
 	local pos_cmd = ""
 
-	vim.fn.setloclist(0, opts.cscope.parsed_output, "r")
+	vim.fn.setloclist(0, opts.cscope.parsed_output)
 	vim.fn.setloclist(0, {}, "a", { title = opts.cscope.prompt_title })
 
 	if opts.cscope.picker_opts.window_pos == "top" then

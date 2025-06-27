@@ -4,7 +4,7 @@ local M = {}
 ---@param path string
 ---@return boolean
 M.is_path_abs = function(path)
-	return vim.startswith(path, "/")
+	return vim.fn.isabsolutepath(path) == 1
 end
 
 --- Get relative path

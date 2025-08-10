@@ -4,7 +4,18 @@ local M = {}
 ---@param path string
 ---@return boolean
 M.is_path_abs = function(path)
-	return vim.fn.isabsolutepath(path) == 1
+	if vim.fn.has("nvim-0.11") == 1 then
+		return vim.fn.isabsolutepath(path) == 1
+	end
+
+	if vim.fn.has("win32") == 1 then
+		--  match "\\abc", "C:\abc" or "C:/abc"
+		return vim.startswith(path, "\\\\")
+			or (path:sub(1, 1):match("%a") and path:sub(2, 2) == ":" and (path:sub(3, 3) == "\\" or path:sub(3, 3) == "/"))
+			or false
+	end
+
+	return vim.startswith(path, "/") or vim.startswith(path, "~/")
 end
 
 --- Get relative path

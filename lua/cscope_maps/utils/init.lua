@@ -1,5 +1,10 @@
 local M = {}
 
+-- global state of utils
+M.g = {
+	rel_paths = {},
+}
+
 --- Check if given path is absolute path
 ---@param path string
 ---@return boolean
@@ -29,6 +34,12 @@ M.get_rel_path = function(rel_to, path)
 		return path
 	end
 
+	-- get memoized path
+	local g_key = string.format("%s#%s", rel_to, path)
+	if M.g.rel_paths[g_key] then
+		return M.g.rel_paths[g_key]
+	end
+
 	local rel_path = ""
 	local sp_rel_to = vim.split(vim.fs.normalize(rel_to), "/")
 	local sp_path = vim.split(vim.fs.normalize(path), "/")
@@ -50,6 +61,9 @@ M.get_rel_path = function(rel_to, path)
 
 	-- append remaining path
 	rel_path = rel_path .. table.concat(sp_path, "/", i)
+
+	-- memoize path
+	M.g.rel_paths[g_key] = rel_path
 
 	return rel_path
 end

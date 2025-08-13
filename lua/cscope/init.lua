@@ -206,7 +206,7 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 			"-f",
 			utils.get_rel_path(vim.fn.getcwd(), _db_con.file),
 			"-P",
-			utils.get_rel_path(vim.fn.getcwd(), _db_con.pre_path)
+			utils.get_rel_path(vim.fn.getcwd(), _db_con.pre_path),
 		}
 		cmd = vim.list_extend(cmd, _cmd_args)
 		local proc = vim.system(cmd, { text = true }):wait()

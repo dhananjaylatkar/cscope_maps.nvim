@@ -62,6 +62,10 @@ M.get_rel_path = function(rel_to, path)
 	-- append remaining path
 	rel_path = rel_path .. table.concat(sp_path, "/", i)
 
+	if rel_path == "" then
+		rel_path = "."
+	end
+
 	-- memoize path
 	M.g.rel_paths[g_key] = rel_path
 

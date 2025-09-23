@@ -4,8 +4,13 @@ local hl = require("cscope.stack_view.hl")
 local utils = require("cscope_maps.utils")
 local M = {}
 
+local def_width_scale = 0.85 -- width scale of stack view window (take 85% of the total height)
+local def_height_scale = 0.8 -- height scale of stack view window (take 80% of the total height)
+
 M.opts = {
 	tree_hl = true, -- toggle tree highlighting
+	width_scale = def_width_scale,
+	height_scale = def_height_scale,
 }
 
 -- m()
@@ -91,14 +96,16 @@ M.set_keymaps = function()
 	vim.keymap.set("n", "<C-e>", M.pv_scroll(1), opts)
 end
 
-M.buf_open = function()
+M.buf_open = function(width_scale, height_scale)
 	local vim_height = vim.o.lines
 	local vim_width = vim.o.columns
 
-	local width = math.floor(vim_width * 0.8 / 2 + 3 / 2)
-	local height = math.floor(vim_height * 0.7)
-	local col = vim_width * 0.1 - 1
-	local row = vim_height * 0.15
+	local w_scale = width_scale
+	local h_scale = height_scale
+	local width = math.floor(vim_width * w_scale * 0.5)
+	local height = math.floor(vim_height * h_scale)
+	local col = vim_width * (1 - w_scale) * 0.5
+	local row = vim_height * (1 - h_scale) * 0.5
 
 	M.cache.pv.buf = M.cache.pv.buf or api.nvim_create_buf(false, true)
 	M.cache.pv.win = M.cache.pv.win
@@ -108,7 +115,7 @@ M.buf_open = function()
 			title_pos = "center",
 			width = width,
 			height = height,
-			col = col + 1 + width,
+			col = col + width + 1,
 			row = row,
 			style = "minimal",
 			focusable = false,
@@ -125,7 +132,7 @@ M.buf_open = function()
 			title_pos = "center",
 			width = width,
 			height = height,
-			col = col - 1,
+			col = col,
 			row = row,
 			style = "minimal",
 			focusable = false,
@@ -172,7 +179,7 @@ M.buf_update = function()
 	buf_lines = {}
 	M.buf_create_lines(root)
 	-- print(vim.inspect(buf_lines))
-	M.buf_open()
+	M.buf_open(M.opts.width_scale, M.opts.height_scale)
 
 	M.buf_unlock(M.cache.sv.buf)
 	api.nvim_buf_set_lines(M.cache.sv.buf, 0, -1, false, buf_lines)
@@ -418,6 +425,13 @@ end
 
 M.setup = function(opts)
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
+	-- Some sanity checks (make sure scales are between 0 to 1)
+	if M.opts.width_scale <= 0 or M.opts.width_scale > 1 then
+		M.opts.width_scale = def_width_scale
+	end
+	if M.opts.height_scale <= 0 or M.opts.height_scale > 1 then
+		M.opts.height_scale = def_height_scale
+	end
 	M.set_user_cmd()
 end
 

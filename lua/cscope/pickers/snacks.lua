@@ -16,10 +16,10 @@ local prepare = function(items)
 end
 
 M.run = function(opts)
-	Snacks.picker({
-		items = prepare(opts.cscope.parsed_output),
-		title = opts.cscope.prompt_title,
-	})
+	local snacks_opts = opts.cscope.picker_opts.snacks or {}
+	snacks_opts.items = prepare(opts.cscope.parsed_output)
+	snacks_opts.title = opts.cscope.prompt_title
+	Snacks.picker(snacks_opts)
 end
 
 return M

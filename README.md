@@ -115,6 +115,9 @@ _cscope_maps_ comes with following defaults:
     picker_opts = {
       window_size = 5, -- any positive integer
       window_pos = "bottom", -- "bottom", "right", "left" or "top"
+      -- options for Snacks picker (---@class snacks.picker.Config)
+      -- pass-through options for Snacks picker
+      snacks = {}, -- snacks config
     },
     -- "true" does not open picker for single result, just JUMP
     skip_picker_for_single_result = false, -- "false" or "true"
@@ -231,3 +234,61 @@ under cursor
 ```lua
 vim.keymap.set({ "n", "v" }, "<C-c><C-g>", "<cmd>Cs f g<cr>")
 ```
+
+## Advanced Examples
+
+### Using Snacks picker with custom options
+
+Following snippet shows how to use `snacks.nvim` picker with custom layout.
+
+`cscope.picker_opts.snacks` are passed as is to `Snacks.picker()`.
+More details about `Snacks.picker()` can be found [here](https://github.com/folke/snacks.nvim/blob/main/docs/picker.md)
+
+The layout used in this example is as follows -
+ - Horizontal layout (input and list on the left, preview on the right)
+ - Total width is 90% of screen width
+ - Total height is 85% of screen height
+ - The left side (input and list) takes up 60% of the width
+ - The right side (preview) takes up 40% of the width
+ - Rounded borders for input and preview windows
+ - Preview window has word wrap enabled
+
+```lua
+
+-- only showing relevant part of the config
+Opts = {
+      cscope = {
+        picker = 'snacks', -- snacks.picker (alternative: telescope)
+        picker_opts = {
+          ---@class snacks.picker.Config
+          snacks = {
+            -- layout = 'vertical', -- Use "vertical" or "horizontal" if you want to use presets
+            ---@class snacks.picker.layout.Config
+            layout = {
+              layout = {
+                height = 0.85, -- Take up 85% of the total height
+                width = 0.9, -- Take up 90% of the total width (adjust as needed)
+                box = 'horizontal', -- Horizontal layout (input and list on the left, preview on the right)
+                { -- Left side (input and list)
+                  box = 'vertical',
+                  width = 0.6, -- List and input take up 60% of the width
+                  border = 'rounded',
+                  { win = 'input', height = 1, border = 'bottom' },
+                  { win = 'list', border = 'none' },
+                },
+                { win = 'preview', border = 'rounded', width = 0.4 }, -- Preview window takes up 40% of the width
+              },
+            },
+            ---@class snacks.picker.win.Config
+            win = {
+              preview = {
+                wo = { wrap = true },
+              },
+            },
+          }, -- snacks
+        }, -- picker_opts
+      }, -- cscope
+    }, -- Opts
+
+```
+

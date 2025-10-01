@@ -23,7 +23,12 @@ M.opts = {
 -- callers --> DOWN the stack
 -- called  --> UP the stack
 
-M.cache = { sv = { buf = nil, win = nil }, pv = { buf = nil, win = nil, files = {}, last_file = "" } }
+M.cache = {
+	sv = { buf = nil, win = nil },
+	pv = { buf = nil, win = nil, files = {}, last_file = "" },
+	last_win = nil,
+}
+
 M.dir_map = {
 	down = {
 		indicator = "<- ",
@@ -69,6 +74,15 @@ M.pv_scroll = function(dir)
 	end
 end
 
+---Saves last window from where stack_view is opened.
+---last_win is used by buf_close() to return to correct window
+M.save_last_window = function()
+	if M.cache.last_win ~= nil then
+		return
+	end
+	M.cache.last_win = api.nvim_get_current_win()
+end
+
 M.set_keymaps = function()
 	local opts = { buffer = M.cache.sv.buf, silent = true }
 
@@ -99,6 +113,8 @@ M.buf_open = function()
 	local height = math.floor(vim_height * 0.7)
 	local col = vim_width * 0.1 - 1
 	local row = vim_height * 0.15
+
+	M.save_last_window()
 
 	M.cache.pv.buf = M.cache.pv.buf or api.nvim_create_buf(false, true)
 	M.cache.pv.win = M.cache.pv.win
@@ -154,6 +170,10 @@ M.buf_close = function()
 		api.nvim_win_close(M.cache.pv.win, true)
 	end
 
+	if M.cache.last_win ~= nil and api.nvim_win_is_valid(M.cache.last_win) then
+		api.nvim_set_current_win(M.cache.last_win)
+	end
+
 	M.cache.sv.buf = nil
 	M.cache.sv.win = nil
 
@@ -161,6 +181,8 @@ M.buf_close = function()
 	M.cache.pv.win = nil
 
 	M.cache.pv.last_file = ""
+
+	M.cache.last_win = nil
 end
 
 M.buf_update = function()

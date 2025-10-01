@@ -27,6 +27,7 @@ M.cache = {
 	sv = { buf = nil, win = nil },
 	pv = { buf = nil, win = nil, files = {}, last_file = "" },
 	last_win = nil,
+	win_opened = false,
 }
 
 M.dir_map = {
@@ -105,6 +106,26 @@ M.set_keymaps = function()
 	vim.keymap.set("n", "<C-e>", M.pv_scroll(1), opts)
 end
 
+M.set_autocmds = function()
+	local augroup = api.nvim_create_augroup("CscopeMaps", {})
+	api.nvim_create_autocmd({ "BufLeave" }, {
+		group = augroup,
+		buffer = M.cache.sv.buf,
+		callback = M.toggle_win,
+	})
+
+	api.nvim_create_autocmd("CursorMoved", {
+		group = augroup,
+		buffer = M.cache.sv.buf,
+		callback = function()
+			if M.opts.tree_hl then
+				hl.refresh(M.cache.sv.buf, root)
+			end
+			M.preview_update()
+		end,
+	})
+end
+
 M.buf_open = function()
 	local vim_height = vim.o.lines
 	local vim_width = vim.o.columns
@@ -151,6 +172,9 @@ M.buf_open = function()
 	api.nvim_set_option_value("cursorline", true, { win = M.cache.sv.win })
 
 	M.set_keymaps()
+	M.set_autocmds()
+
+	M.cache.win_opened = true
 end
 
 M.buf_close = function()
@@ -183,18 +207,24 @@ M.buf_close = function()
 	M.cache.pv.last_file = ""
 
 	M.cache.last_win = nil
+
+	M.cache.win_opened = false
 end
 
-M.buf_update = function()
+---open stack_view window (if not already) and update using buf_lines
+M.buf_open_and_update = function()
 	if root == nil then
 		return
+	end
+
+	if not M.cache.win_opened then
+		M.buf_open()
 	end
 
 	-- print(vim.inspect(root))
 	buf_lines = {}
 	M.buf_create_lines(root)
 	-- print(vim.inspect(buf_lines))
-	M.buf_open()
 
 	M.buf_unlock(M.cache.sv.buf)
 	api.nvim_buf_set_lines(M.cache.sv.buf, 0, -1, false, buf_lines)
@@ -203,24 +233,6 @@ M.buf_update = function()
 		buf_last_pos = nil
 	end
 	M.buf_lock(M.cache.sv.buf)
-
-	local augroup = api.nvim_create_augroup("CscopeMaps", {})
-	api.nvim_create_autocmd({ "BufLeave" }, {
-		group = augroup,
-		buffer = M.cache.sv.buf,
-		callback = M.toggle_win,
-	})
-
-	api.nvim_create_autocmd("CursorMoved", {
-		group = augroup,
-		buffer = M.cache.sv.buf,
-		callback = function()
-			if M.opts.tree_hl then
-				hl.refresh(M.cache.sv.buf, root)
-			end
-			M.preview_update()
-		end,
-	})
 end
 
 --- Read data from given file
@@ -333,7 +345,7 @@ M.toggle_children = function()
 	end
 
 	root = tree.update_node(root, parent_id, children)
-	M.buf_update()
+	M.buf_open_and_update()
 end
 
 M.open = function(dir, symbol)
@@ -368,7 +380,7 @@ M.open = function(dir, symbol)
 	root.children = children
 	root.is_root = true
 
-	M.buf_update()
+	M.buf_open_and_update()
 end
 
 M.toggle_win = function()
@@ -377,7 +389,7 @@ M.toggle_win = function()
 		M.buf_close()
 		return
 	end
-	M.buf_update()
+	M.buf_open_and_update()
 end
 
 M.enter_action = function()

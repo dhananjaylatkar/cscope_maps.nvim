@@ -145,6 +145,8 @@ _cscope_maps_ comes with following defaults:
   -- stack view defaults
   stack_view = {
     tree_hl = true, -- toggle tree highlighting
+    width_scale = 0.85, -- % of total width (should be between > 0 and <= 1)
+    height_scale = 0.8, -- % of total height (should be between > 0 and <= 1)
   }
 }
 ```

@@ -124,6 +124,16 @@ M.set_autocmds = function()
 			M.preview_update()
 		end,
 	})
+
+	api.nvim_create_autocmd("VimResized", {
+		group = augroup,
+		buffer = M.cache.sv.buf,
+		callback = function ()
+			buf_last_pos = fn.line(".")
+			M.buf_close()
+			M.buf_open_and_update()
+		end,
+	})
 end
 
 M.buf_open = function()

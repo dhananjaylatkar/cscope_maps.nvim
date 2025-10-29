@@ -95,7 +95,15 @@ M.set_keymaps = function()
 	vim.keymap.set("n", "<tab>", M.toggle_children, opts)
 
 	-- open location under cursor
-	vim.keymap.set("n", "<cr>", M.enter_action, opts)
+	vim.keymap.set("n", "<cr>", function()
+		M.open_action("none")
+	end, opts)
+	vim.keymap.set("n", "<C-v>", function()
+		M.open_action("vert")
+	end, opts)
+	vim.keymap.set("n", "<C-s>", function()
+		M.open_action("horiz")
+	end, opts)
 
 	-- scroll up
 	vim.keymap.set("n", "<C-u>", M.pv_scroll(-1), opts)
@@ -128,7 +136,7 @@ M.set_autocmds = function()
 	api.nvim_create_autocmd("VimResized", {
 		group = augroup,
 		buffer = M.cache.sv.buf,
-		callback = function ()
+		callback = function()
 			buf_last_pos = fn.line(".")
 			M.buf_close()
 			M.buf_open_and_update()
@@ -402,7 +410,7 @@ M.toggle_win = function()
 	M.buf_open_and_update()
 end
 
-M.enter_action = function()
+M.open_action = function(split)
 	if vim.bo.filetype ~= M.ft then
 		return
 	end
@@ -413,7 +421,7 @@ M.enter_action = function()
 
 	local _, pfilename, plnum = M.line_to_data(fn.getline("."))
 	M.toggle_win()
-	utils.open_file(pfilename, plnum)
+	utils.open_file(pfilename, plnum, split)
 end
 
 -- :CsStackView toggle

@@ -1,4 +1,4 @@
-*cscope_maps.txt*      For Neovim >= v0.10.0      Last change: 2025 October 29
+*cscope_maps.txt*      For Neovim >= v0.10.0     Last change: 2025 November 05
 
 ==============================================================================
 Table of Contents                              *cscope_maps-table-of-contents*

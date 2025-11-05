@@ -56,6 +56,8 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 - In `CsStackView` window, use following keymaps
   - `<tab>` toggle child under cursor
   - `<cr>` open location of symbol under cursor
+  - `<C-v>` open location of symbol under cursor in vertical split
+  - `<C-s>` open location of symbol under cursor in horizontal split
   - `q` or `<esc>` close window
   - `<C-u>` or `<C-y>` scroll up preview
   - `<C-d>` or `<C-e>` scroll down preview

@@ -139,10 +139,17 @@ M.is_path_same = function(path1, path2)
 	return path1 and path2 and M.get_abs_path(path1) == M.get_abs_path(path2)
 end
 
----Opens file at given line number
+---Opens file at given line number and split orientation
 ---@param fname string
 ---@param lnum number
-M.open_file = function(fname, lnum)
+---@param split string
+M.open_file = function(fname, lnum, split)
+	if split == "vert" then
+		vim.cmd("vsplit")
+	elseif split == "horiz" then
+		vim.cmd("split")
+	end
+
 	if M.is_path_same(vim.api.nvim_buf_get_name(0), fname) then
 		-- change position when in same buffer
 		vim.api.nvim_win_set_cursor(0, { lnum, 0 })

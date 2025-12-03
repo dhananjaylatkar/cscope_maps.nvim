@@ -274,9 +274,9 @@ end
 M.tag_get_info = function(tag)
 	local res = {}
 	local bin = ""
-	if vim.fn.executable("rg") then
+	if vim.fn.executable("rg") == 1 then
 		bin = "rg"
-	elseif vim.fn.executable("grep") then
+	elseif vim.fn.executable("grep") == 1 then
 		bin = "grep"
 	end
 

@@ -5,18 +5,17 @@ local log = require("cscope_maps.utils.log")
 local utils = require("cscope_maps.utils")
 local M = {}
 
--- Size presets for stack view window
--- width: fraction of screen width (0.85 = 85% of screen width)
--- height: fraction of screen height (0.8 = 80% of screen height)
--- Add more presets here as needed (e.g., "small", "medium")
-local size_presets = {
-	default = { width = 0.85, height = 0.8 },
-	large = { width = 0.95, height = 0.95 },
-}
-
 M.opts = {
 	tree_hl = true, -- toggle tree highlighting
-	size = "default", -- "default" or "large"
+	size = "medium", -- "medium" or "large"
+}
+
+-- Size presets for stack view window
+-- width: fraction of screen width (0.85 = 85% of screen width)
+-- height: fraction of screen height (0.7 = 70% of screen height)
+local size_presets = {
+	medium = { width = 0.85, height = 0.7 },
+	large = { width = 0.95, height = 0.95 },
 }
 
 -- m()
@@ -155,16 +154,17 @@ M.set_autocmds = function()
 	})
 end
 
-M.buf_open = function(width_scale, height_scale)
+M.buf_open = function()
 	local vim_height = vim.o.lines
 	local vim_width = vim.o.columns
 
-	local w_scale = width_scale
-	local h_scale = height_scale
-	local width = math.floor(vim_width * w_scale * 0.5)
-	local height = math.floor(vim_height * h_scale)
-	local col = vim_width * (1 - w_scale) * 0.5
-	local row = vim_height * (1 - h_scale) * 0.5
+	-- Each pane takes half the preset width, full preset height.
+	-- col/row center the pair of panes on screen.
+	local preset = size_presets[M.opts.size]
+	local width = math.floor(vim_width * preset.width * 0.5)
+	local height = math.floor(vim_height * preset.height)
+	local col = vim_width * (1 - preset.width) * 0.5
+	local row = vim_height * (1 - preset.height) * 0.5
 
 	M.save_last_window()
 
@@ -193,7 +193,7 @@ M.buf_open = function(width_scale, height_scale)
 			title_pos = "center",
 			width = width,
 			height = height,
-			col = col,
+			col = col - 1,
 			row = row,
 			style = "minimal",
 			focusable = false,
@@ -249,8 +249,7 @@ M.buf_open_and_update = function()
 	end
 
 	if not M.cache.win_opened then
-		local preset = size_presets[M.opts.size]
-		M.buf_open(preset.width, preset.height)
+		M.buf_open()
 	end
 
 	-- print(vim.inspect(root))
@@ -484,10 +483,10 @@ end
 
 M.setup = function(opts)
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
-	-- Validate size preset (fall back to "default" if invalid)
+	-- Validate size preset (fall back to "medium" if invalid)
 	if not size_presets[M.opts.size] then
-		log.warn(string.format('Invalid stack_view size "%s", using "default"', M.opts.size))
-		M.opts.size = "default"
+		log.warn(string.format('Invalid stack_view size "%s", using "medium"', M.opts.size))
+		M.opts.size = "medium"
 	end
 	M.set_user_cmd()
 end

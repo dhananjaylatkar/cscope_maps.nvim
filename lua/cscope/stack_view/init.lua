@@ -1,11 +1,21 @@
 local cs = require("cscope")
 local tree = require("cscope.stack_view.tree")
 local hl = require("cscope.stack_view.hl")
+local log = require("cscope_maps.utils.log")
 local utils = require("cscope_maps.utils")
 local M = {}
 
 M.opts = {
 	tree_hl = true, -- toggle tree highlighting
+	size = "medium", -- "medium" or "large"
+}
+
+-- Size presets for stack view window
+-- width: fraction of screen width (0.85 = 85% of screen width)
+-- height: fraction of screen height (0.7 = 70% of screen height)
+local size_presets = {
+	medium = { width = 0.85, height = 0.7 },
+	large = { width = 0.95, height = 0.95 },
 }
 
 -- m()
@@ -148,10 +158,13 @@ M.buf_open = function()
 	local vim_height = vim.o.lines
 	local vim_width = vim.o.columns
 
-	local width = math.floor(vim_width * 0.8 / 2 + 3 / 2)
-	local height = math.floor(vim_height * 0.7)
-	local col = vim_width * 0.1 - 1
-	local row = vim_height * 0.15
+	-- Each pane takes half the preset width, full preset height.
+	-- col/row center the pair of panes on screen.
+	local preset = size_presets[M.opts.size]
+	local width = math.floor(vim_width * preset.width * 0.5)
+	local height = math.floor(vim_height * preset.height)
+	local col = vim_width * (1 - preset.width) * 0.5
+	local row = vim_height * (1 - preset.height) * 0.5
 
 	M.save_last_window()
 
@@ -163,7 +176,7 @@ M.buf_open = function()
 			title_pos = "center",
 			width = width,
 			height = height,
-			col = col + 1 + width,
+			col = col + width + 1,
 			row = row,
 			style = "minimal",
 			focusable = false,
@@ -470,6 +483,11 @@ end
 
 M.setup = function(opts)
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
+	-- Validate size preset (fall back to "medium" if invalid)
+	if not size_presets[M.opts.size] then
+		log.warn(string.format('Invalid stack_view size "%s", using "medium"', M.opts.size))
+		M.opts.size = "medium"
+	end
 	M.set_user_cmd()
 end
 

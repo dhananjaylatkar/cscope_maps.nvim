@@ -171,6 +171,7 @@ _cscope_maps_ comes with following defaults:
       -- stack view defaults
       stack_view = {
         tree_hl = true, -- toggle tree highlighting
+        size = "medium", -- "medium" or "large" (large is 95% of screen)
       }
     }
 <

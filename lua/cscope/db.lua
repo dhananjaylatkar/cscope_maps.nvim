@@ -5,12 +5,14 @@ local M = {}
 
 --- conns = { {file = db_file, pre_path = db_pre_path}, ... }
 M.conns = {}
+M.gtags_conns = {}
 M.global_conn = nil
 
 M.sep = "::"
 
 M.reset = function()
 	M.conns = {}
+	M.gtags_conns = {}
 	M.global_conn = nil
 end
 
@@ -39,6 +41,38 @@ end
 M.update_primary_conn = function(file, pre_path)
 	M.conns[1].file = vim.fs.normalize(file)
 	M.conns[1].pre_path = vim.fs.normalize(pre_path)
+end
+
+---Add gtags db connection
+---@param path string
+M.add_gtags = function(path)
+	local file, pre_path = M.sp_file_pre_path(path)
+	for _, conn in ipairs(M.gtags_conns) do
+		if
+			utils.is_path_same(conn.file, file)
+			and (utils.is_path_same(conn.pre_path, pre_path) or conn.pre_path == nil)
+		then
+			return
+		end
+	end
+	table.insert(M.gtags_conns, { file = file, pre_path = pre_path })
+end
+
+---Get primary gtags db connection
+---@return table|nil
+M.primary_gtags_conn = function()
+	if #M.gtags_conns == 0 then
+		return nil
+	end
+	return M.gtags_conns[1]
+end
+
+---Update primary gtags db connection
+---@param file string
+---@param pre_path string
+M.update_primary_gtags_conn = function(file, pre_path)
+	M.gtags_conns[1].file = vim.fs.normalize(file)
+	M.gtags_conns[1].pre_path = vim.fs.normalize(pre_path)
 end
 
 ---Update global db connection
@@ -132,70 +166,106 @@ M.update = function(op, files)
 end
 
 M.print_conns = function()
-	if not M.conns then
+	if #M.conns == 0 and #M.gtags_conns == 0 then
 		log.warn("No connections")
+		return
 	end
 
 	for i, conn in ipairs(M.conns) do
 		local file = utils.get_rel_path(vim.fn.getcwd(), conn.file)
 		local pre_path = utils.get_rel_path(vim.fn.getcwd(), conn.pre_path)
 		if not pre_path or pre_path == "" then
-			log.warn(string.format("%d) db=%s", i, file))
+			log.warn(string.format("%d) [cscope] db=%s", i, file))
 		else
-			log.warn(string.format("%d) db=%s pre_path=%s", i, file, pre_path))
+			log.warn(string.format("%d) [cscope] db=%s pre_path=%s", i, file, pre_path))
+		end
+	end
+
+	for i, conn in ipairs(M.gtags_conns) do
+		local file = utils.get_rel_path(vim.fn.getcwd(), conn.file)
+		local pre_path = utils.get_rel_path(vim.fn.getcwd(), conn.pre_path)
+		if not pre_path or pre_path == "" then
+			log.warn(string.format("%d) [gtags] db=%s", i, file))
+		else
+			log.warn(string.format("%d) [gtags] db=%s pre_path=%s", i, file, pre_path))
 		end
 	end
 end
 
----Create command to build DB
----1. If script is default then use opt.exec
+---Create commands to build DB for all exec types
+---1. If script is default then build for each exec type
 ---2. If custom script is provided then use that with "-d <db>::<pre_path>" args
-M.get_build_cmd = function(opts)
-	local cmd = {}
+---@param opts table
+---@param exec_list string[]
+---@return table[]
+M.get_build_cmds = function(opts, exec_list)
+	local cmds = {}
 
 	if opts.db_build_cmd.script == "default" then
-		if opts.exec == "cscope" then
-			cmd = { "cscope", "-f", M.primary_conn().file }
-		else -- "gtags-cscope"
-			cmd = { "gtags-cscope" }
+		for _, exec in ipairs(exec_list) do
+			local cmd = {}
+			if exec == "cscope" then
+				local pc = M.primary_conn()
+				if pc then
+					cmd = { "cscope", "-f", pc.file }
+					vim.list_extend(cmd, opts.db_build_cmd.args)
+					table.insert(cmds, cmd)
+				end
+			elseif exec == "gtags-cscope" then
+				cmd = { "gtags-cscope" }
+				vim.list_extend(cmd, opts.db_build_cmd.args)
+				table.insert(cmds, cmd)
+			end
 		end
-
-		vim.list_extend(cmd, opts.db_build_cmd.args)
-		return cmd
+		return cmds
 	end
 
 	-- custom script
-	cmd = { opts.db_build_cmd.script }
+	local cmd = { opts.db_build_cmd.script }
 	vim.list_extend(cmd, opts.db_build_cmd.args)
 
 	for _, conn in ipairs(M.conns) do
 		vim.list_extend(cmd, { "-d", string.format("%s::%s", conn.file, conn.pre_path) })
 	end
 
-	return cmd
+	table.insert(cmds, cmd)
+	return cmds
 end
 
-local on_exit = function(obj)
-	vim.g.cscope_maps_statusline_indicator = nil
-	if obj.code == 0 then
-		-- print("cscope: [build] out: " .. obj.stdout)
-		print("cscope: database built successfully")
-	else
-		-- print("cscope: [build] out: " .. obj.stderr)
-		print("cscope: database build failed")
-	end
-end
-
-M.build = function(opts)
+M.build = function(opts, exec_list)
 	if vim.g.cscope_maps_statusline_indicator then
 		log.warn("db build is already in progress")
 		return
 	end
 
-	local cmd = M.get_build_cmd(opts)
+	local cmds = M.get_build_cmds(opts, exec_list)
+	if #cmds == 0 then
+		log.warn("no build commands to run")
+		return
+	end
 
-	vim.g.cscope_maps_statusline_indicator = opts.statusline_indicator or opts.exec
-	vim.system(cmd, { text = true }, on_exit)
+	local total = #cmds
+	local completed = 0
+	local failed = false
+
+	vim.g.cscope_maps_statusline_indicator = opts.statusline_indicator or table.concat(exec_list, "+")
+
+	for _, cmd in ipairs(cmds) do
+		vim.system(cmd, { text = true }, function(obj)
+			completed = completed + 1
+			if obj.code ~= 0 then
+				failed = true
+			end
+			if completed == total then
+				vim.g.cscope_maps_statusline_indicator = nil
+				if failed then
+					print("cscope: database build failed")
+				else
+					print("cscope: database built successfully")
+				end
+			end
+		end)
+	end
 end
 
 return M

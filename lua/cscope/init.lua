@@ -16,7 +16,7 @@ local M = {}
 
 ---@class CsConfig
 ---@field db_file? string|[string]
----@field exec? string
+---@field exec? string|string[]
 ---@field picker? string
 ---@field skip_picker_for_single_result? boolean
 ---@field db_build_cmd? table
@@ -45,6 +45,7 @@ M.opts = {
 }
 
 M.user_opts = {}
+M.exec_list = {}
 
 -- operation symbol to number map
 M.op_s_n = {
@@ -191,15 +192,14 @@ end
 M.get_result = function(op_n, op_s, symbol, hide_log)
 	-- Executes cscope search and return parsed output
 
-	local db_conns = db.all_conns()
 	local res = {}
 
-	local exec_and_update_res = function(_db_con, _cmd_args)
+	local exec_and_update_res = function(_exec, _db_con, _cmd_args)
 		if vim.loop.fs_stat(_db_con.file) == nil then
 			return
 		end
 		local cmd = {
-			M.opts.exec,
+			_exec,
 			"-dL",
 			"-" .. op_n,
 			symbol,
@@ -217,19 +217,41 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 		res = vim.list_extend(res, M.parse_output(proc.stdout, _db_con.pre_path))
 	end
 
-	if M.opts.exec == "cscope" then
-		for _, db_con in ipairs(db_conns) do
-			exec_and_update_res(db_con, {})
+	local any_exec_supported = false
+
+	-- Prioritize gtags-cscope over cscope: query gtags first, then cscope
+	local ordered_exec_list = {}
+	for _, exec in ipairs(M.exec_list) do
+		if exec == "gtags-cscope" then
+			table.insert(ordered_exec_list, 1, exec)
+		else
+			table.insert(ordered_exec_list, exec)
 		end
-	elseif M.opts.exec == "gtags-cscope" then
-		if op_s == "d" then
-			log.warn("'d' operation is not available for " .. M.opts.exec, hide_log)
-			return RC.INVALID_OP, nil
+	end
+
+	for _, exec in ipairs(ordered_exec_list) do
+		if exec == "cscope" then
+			any_exec_supported = true
+			local db_conns = db.all_conns()
+			for _, db_con in ipairs(db_conns) do
+				exec_and_update_res(exec, db_con, {})
+			end
+		elseif exec == "gtags-cscope" then
+			if op_s ~= "d" then
+				any_exec_supported = true
+				local gtags_conn = db.primary_gtags_conn()
+				if gtags_conn then
+					exec_and_update_res(exec, gtags_conn, { "-a" })
+				end
+			end
+		else
+			log.warn("'" .. exec .. "' executable is not supported", hide_log)
 		end
-		exec_and_update_res(db.primary_conn(), { "-a" })
-	else
-		log.warn("'" .. M.opts.exec .. "' executable is not supported", hide_log)
-		return RC.INVALID_EXEC, nil
+	end
+
+	if not any_exec_supported then
+		log.warn("'" .. op_s .. "' operation is not available for configured executables", hide_log)
+		return RC.INVALID_OP, nil
 	end
 
 	if vim.tbl_isempty(res) then
@@ -412,7 +434,7 @@ M.run = function(args)
 
 		local op = args[2]:sub(1, 1)
 		if op == "b" then
-			db.build(M.opts)
+			db.build(M.opts, M.exec_list)
 		elseif op == "a" or op == "r" then
 			-- collect all args
 			local files = {}
@@ -576,16 +598,32 @@ M.setup = function(opts)
 	vim.g.cscope_maps_db_file = nil
 	vim.g.cscope_maps_statusline_indicator = nil
 
-	if M.opts.exec == "gtags-cscope" then
+	-- Normalize exec to a list
+	if type(M.opts.exec) == "string" then
+		M.exec_list = { M.opts.exec }
+	else
+		M.exec_list = vim.deepcopy(M.opts.exec)
+	end
+
+	-- For backward compat: single gtags-cscope forces db_file to GTAGS
+	if #M.exec_list == 1 and M.exec_list[1] == "gtags-cscope" then
 		M.opts.db_file = gtags_db
 	end
 
-	if type(M.opts.db_file) == "string" then
-		db.add(M.opts.db_file)
-	else -- table
-		for _, f in ipairs(M.opts.db_file) do
-			db.add(f)
+	-- Add cscope db connections
+	if vim.tbl_contains(M.exec_list, "cscope") then
+		if type(M.opts.db_file) == "string" then
+			db.add(M.opts.db_file)
+		else
+			for _, f in ipairs(M.opts.db_file) do
+				db.add(f)
+			end
 		end
+	end
+
+	-- Add gtags db connections
+	if vim.tbl_contains(M.exec_list, "gtags-cscope") then
+		db.add_gtags(gtags_db)
 	end
 
 	if M.opts.db_build_cmd.script ~= "default" and vim.fn.executable(M.opts.db_build_cmd.script) ~= 1 then
@@ -607,14 +645,32 @@ M.setup = function(opts)
 	-- 1. get root of project and update primary conn
 	-- 2. if change_cwd is enabled, change into it (?)
 	if M.opts.project_rooter.enable then
-		local primary_conn = db.primary_conn()
-		local root = M.root(vim.fn.getcwd(), primary_conn.file)
-		if root then
-			db.update_primary_conn(vim.fs.joinpath(root, primary_conn.file), root)
+		local root_found = nil
 
-			if M.opts.project_rooter.change_cwd then
-				vim.cmd("cd " .. root)
+		if vim.tbl_contains(M.exec_list, "cscope") then
+			local primary_conn = db.primary_conn()
+			if primary_conn then
+				local root = M.root(vim.fn.getcwd(), primary_conn.file)
+				if root then
+					db.update_primary_conn(vim.fs.joinpath(root, primary_conn.file), root)
+					root_found = root_found or root
+				end
 			end
+		end
+
+		if vim.tbl_contains(M.exec_list, "gtags-cscope") then
+			local gtags_conn = db.primary_gtags_conn()
+			if gtags_conn then
+				local root = M.root(vim.fn.getcwd(), gtags_conn.file)
+				if root then
+					db.update_primary_gtags_conn(vim.fs.joinpath(root, gtags_conn.file), root)
+					root_found = root_found or root
+				end
+			end
+		end
+
+		if root_found and M.opts.project_rooter.change_cwd then
+			vim.cmd("cd " .. root_found)
 		end
 	end
 

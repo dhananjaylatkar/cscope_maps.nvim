@@ -580,13 +580,7 @@ M.setup = function(opts)
 		M.opts.db_file = gtags_db
 	end
 
-	if type(M.opts.db_file) == "string" then
-		db.add(M.opts.db_file)
-	else -- table
-		for _, f in ipairs(M.opts.db_file) do
-			db.add(f)
-		end
-	end
+	db.init(M.opts)
 
 	if M.opts.db_build_cmd.script ~= "default" and vim.fn.executable(M.opts.db_build_cmd.script) ~= 1 then
 		log.warn(string.format("db_build script(%s) not found. Using default", M.opts.db_build_cmd.script))

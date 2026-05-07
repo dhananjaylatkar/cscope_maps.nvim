@@ -31,9 +31,12 @@ Heavily inspired by emacs' [xcscope.el](https://github.com/dkogan/xcscope.el).
 
 ### Cscope DB
 
-- Statically provide table of db paths in config (`db_file`) OR add them at runtime using `:Cs db add ...`
-- `:Cs db add <space sepatated files>` add db file(s) to cscope search.
-- `:Cs db rm <space sepatated files>` remove db file(s) from cscope search.
+- Add DB files
+  - Statically provide table of db paths in config (`db_file`)
+  - `db_file` opt can be `function`. This function __must__ return table of db paths. This can be used to conditionally (e.g. based on `cwd`) add db paths.
+  - Add DB file at runtime using `:Cs db add ...`
+    - `:Cs db add <space sepatated files>` add db file(s) to cscope search.
+    - `:Cs db rm <space sepatated files>` remove db file(s) from cscope search.
 - `:Cs db show` show all db connections.
 - `:Cs db build` (re)builds db.
   - If `db_build_cmd.script == "default"` then only primary DB will be built using cscope binary.

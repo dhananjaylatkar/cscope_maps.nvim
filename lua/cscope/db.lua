@@ -198,4 +198,23 @@ M.build = function(opts)
 	vim.system(cmd, { text = true }, on_exit)
 end
 
+---Parse db_file and call db.add()
+---@param opts table
+M.init = function(opts)
+	if type(opts.db_file) == "string" then
+		M.add(opts.db_file)
+		return
+	end
+
+	if type(opts.db_file) == "function" then
+		opts.db_file = opts.db_file()
+	end
+
+	if type(opts.db_file) == "table" then
+		for _, f in ipairs(opts.db_file) do
+			M.add(f)
+		end
+	end
+end
+
 return M

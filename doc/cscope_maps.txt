@@ -1,4 +1,5 @@
-*cscope_maps.txt*       For Neovim >= v0.10.0       Last change: 2026 April 09
+*cscope_maps.txt*
+                             For Neovim >= v0.10.0    Last change: 2026 May 07
 
 ==============================================================================
 Table of Contents                              *cscope_maps-table-of-contents*
@@ -38,7 +39,7 @@ CSCOPE ~
 
 - Tries to mimic vim’s builtin cscope functionality.
 - Provides user command, `:Cscope` which acts same as good old `:cscope`.
-- Short commands are supported. e.g. `:Cs f g <sym>`
+- Short commands are supported. e.g. `:Cs f g <sym>`
 - `:Cstag <sym>` does `tags` search if no results are found in `cscope`.
 - Empty `<sym>` can be used in `:Cs` and `:Cstag` to pick `<cword>` as sym.
 - Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
@@ -51,22 +52,25 @@ CSCOPE ~
 
 CSCOPE DB ~
 
-- Statically provide table of db paths in config (`db_file`) OR add them at runtime using `:Cs db add ...`
-- `:Cs db add <space sepatated files>` add db file(s) to cscope search.
-- `:Cs db rm <space sepatated files>` remove db file(s) from cscope search.
+- Add DB files
+    - Statically provide table of db paths in config (`db_file`)
+    - `db_file` opt can be `function`. This function **must** return table of db paths. This can be used to conditionally (e.g. based on `cwd`) add db paths.
+    - Add DB file at runtime using `:Cs db add ...`
+        - `:Cs db add <space sepatated files>` add db file(s) to cscope search.
+        - `:Cs db rm <space sepatated files>` remove db file(s) from cscope search.
 - `:Cs db show` show all db connections.
 - `:Cs db build` (re)builds db.
     - If `db_build_cmd.script == "default"` then only primary DB will be built using cscope binary.
-        - e.g. `cscope -f ${db_file} ${db_build_cmd.args}` OR `gtags-cscope ${db_build_cmd.args}`
+        - e.g. `cscope -f ${db_file} ${db_build_cmd.args}` OR `gtags-cscope ${db_build_cmd.args}`
     - Custom script can be provided using `db_build_cmd.script`. Example script is here <https://github.com/dhananjaylatkar/cscope_maps.nvim/pull/67>
-        - e.g. user script will be called as following -
+        - e.g. user script will be called as following -
         - `${db_build_cmd.script} ${db_build_cmd.args} -d <db1>::<pre_path1> -d <db2>::<pre_path2> ...`
 - `vim.g.cscope_maps_statusline_indicator` can be used in statusline to indicate ongoing db build.
 - DB path grammar
     - `db_file::db_pre_path` db_pre_path (prefix path) will be appended to cscope results.
-    - e.g. `:Cs db add ~/cscope.out::/home/code/proj2` => results from `~/cscope.out` will be prefixed with `/home/code/proj2/`
+    - e.g. `:Cs db add ~/cscope.out::/home/code/proj2` => results from `~/cscope.out` will be prefixed with `/home/code/proj2/`
     - `@` can be used to indicate that parent of `db_file` is `db_pre_path`.
-    - e.g. `:Cs db add ../proj2/cscope.out::@` => results from `../proj2/cscope.out` will be prefixed with `../proj2/`
+    - e.g. `:Cs db add ../proj2/cscope.out::@` => results from `../proj2/cscope.out` will be prefixed with `../proj2/`
 
 
 STACK VIEW ~
@@ -267,7 +271,7 @@ USING :CSPROMPT COMMAND
 `:CsPrompt <op>` is user command to invoke prompt. This command provides prompt
 which asks for input before running `:Cscope` command.
 
-e.g. Following snippet maps C-c C-g to find global def of symbol under cursor
+e.g. Following snippet maps C-c C-g to find global def of symbol under cursor
 
 >lua
     vim.keymap.set({ "n", "v" }, "<C-c><C-g>", "<cmd>CsPrompt g<cr>")
@@ -276,7 +280,7 @@ e.g. Following snippet maps C-c C-g to find global def of symbol under cursor
 
 USING :CSCOPE COMMAND
 
-e.g. Following snippet maps C-c C-g to find global def of symbol under cursor
+e.g. Following snippet maps C-c C-g to find global def of symbol under cursor
 
 >lua
     vim.keymap.set({ "n", "v" }, "<C-c><C-g>", "<cmd>Cs f g<cr>")

@@ -33,7 +33,7 @@ M.trace = function(msg, hide)
 	if hide then
 		return
 	end
-	vim.notify("cscope: " .. msg, M.lvl.trace)
+	vim.notify("cscope: " .. msg, M.lvl.TRACE)
 end
 
 M.warn = function(msg, hide)

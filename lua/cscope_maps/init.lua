@@ -1,5 +1,6 @@
 local helper = require("cscope_maps.utils.helper")
 local cs = require("cscope")
+local log = require("cscope_maps.utils.log")
 local M = {}
 
 ---@class CsMapsConfig
@@ -37,8 +38,10 @@ M.cscope_prompt = function(operation)
 			end
 			if new_symbol ~= "" then
 				vim.cmd.Cscope({ args = { "find", operation, new_symbol } })
-			else
+			elseif default_symbol ~= "" then
 				vim.cmd.Cscope({ args = { "find", operation, default_symbol } })
+			else
+				log.warn("empty input")
 			end
 		end)
 	end

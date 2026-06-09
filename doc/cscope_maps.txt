@@ -1,5 +1,5 @@
 *cscope_maps.txt*
-                             For Neovim >= v0.10.0    Last change: 2026 May 07
+                            For Neovim >= v0.10.0    Last change: 2026 June 09
 
 ==============================================================================
 Table of Contents                              *cscope_maps-table-of-contents*
@@ -131,7 +131,7 @@ _cscope_maps_ comes with following defaults:
       -- cscope related defaults
       cscope = {
         -- location of cscope db file
-        db_file = "./cscope.out", -- DB or table of DBs
+        db_file = "./cscope.out", -- DB, table of DBs or function which returns table of DBs
                                   -- NOTE:
                                   --   when table of DBs is provided -
                                   --   first DB is "primary" and others are "secondary"

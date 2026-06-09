@@ -148,8 +148,9 @@ M.print_conns = function()
 end
 
 ---Create command to build DB
----1. If script is default then use opt.exec
----2. If custom script is provided then use that with "-d <db>::<pre_path>" args
+---Return the command and the working directory for the command to be invoked in
+---1. If script is default then use opt.exec and the directory of the primary db
+---2. If custom script is provided then use that with "-d <db>::<pre_path>" args and the CWD
 M.get_build_cmd = function(opts)
 	local cmd = {}
 
@@ -161,7 +162,7 @@ M.get_build_cmd = function(opts)
 		end
 
 		vim.list_extend(cmd, opts.db_build_cmd.args)
-		return cmd
+		return cmd, M.primary_conn().pre_path
 	end
 
 	-- custom script
@@ -172,7 +173,7 @@ M.get_build_cmd = function(opts)
 		vim.list_extend(cmd, { "-d", string.format("%s::%s", conn.file, conn.pre_path) })
 	end
 
-	return cmd
+	return cmd, vim.fn.getcwd()
 end
 
 local on_exit = function(obj)
@@ -192,10 +193,10 @@ M.build = function(opts)
 		return
 	end
 
-	local cmd = M.get_build_cmd(opts)
+	local cmd, wd = M.get_build_cmd(opts)
 
 	vim.g.cscope_maps_statusline_indicator = opts.statusline_indicator or opts.exec
-	vim.system(cmd, { text = true }, on_exit)
+	vim.system(cmd, { cwd = wd, text = true }, on_exit)
 end
 
 ---Parse db_file and call db.add()

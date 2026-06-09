@@ -57,6 +57,18 @@ M.dir_map = {
 	},
 }
 
+M.help = function()
+	print([[
+CsStackView commands:
+open   : Open stack view window       (Usage: open up|down function)
+         up   : Show functions that are above the queried function on the call stack
+         down : Show functions that are below the queried function on the call stack
+
+toggle : Toggle stack view window     (Usage: toggle)
+help   : Show this message            (Usage: help)
+]])
+end
+
 M.ft = "CsStackView"
 local api = vim.api
 local fn = vim.fn
@@ -443,17 +455,39 @@ end
 M.run_cmd = function(args)
 	local cmd = args[1]
 
+	local error_tail = "' is invalid, see :CsStackView help"
+	local error_msg = "command '" .. (cmd or "") .. error_tail
+
+	if not cmd then
+		log.warn(error_msg)
+		return
+	end
+
 	if vim.startswith(cmd, "o") then
 		local stk_dir = args[2]
+
+		error_msg = "direction '" .. (stk_dir or "") .. error_tail
+
+		if not stk_dir then
+			log.warn(error_msg)
+			return
+		end
+
 		local symbol = args[3] or cs.default_sym("s")
 		if vim.startswith(stk_dir, "d") then
 			stk_dir = "down"
 		elseif vim.startswith(stk_dir, "u") then
 			stk_dir = "up"
+		else
+			log.warn(error_msg)
 		end
 		M.open(stk_dir, symbol)
 	elseif vim.startswith(cmd, "t") then
 		M.toggle_win()
+	elseif vim.startswith(cmd, "h") then
+		M.help()
+	else
+		log.warn(error_msg)
 	end
 end
 
@@ -464,7 +498,7 @@ M.set_user_cmd = function()
 	end, {
 		nargs = "*",
 		complete = function(_, line)
-			local cmds = { "open", "toggle" }
+			local cmds = { "open", "toggle", "help" }
 			local l = vim.split(line, "%s+")
 			local n = #l - 2
 

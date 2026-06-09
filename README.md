@@ -106,7 +106,7 @@ _cscope_maps_ comes with following defaults:
   -- cscope related defaults
   cscope = {
     -- location of cscope db file
-    db_file = "./cscope.out", -- DB or table of DBs
+    db_file = "./cscope.out", -- DB, table of DBs or function which returns table of DBs
                               -- NOTE:
                               --   when table of DBs is provided -
                               --   first DB is "primary" and others are "secondary"

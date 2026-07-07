@@ -217,7 +217,8 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 		res = vim.list_extend(res, M.parse_output(proc.stdout, _db_con.pre_path))
 	end
 
-	local any_exec_supported = false
+	local any_valid_exec = false
+	local any_op_supported = false
 
 	-- Prioritize gtags-cscope over cscope: query gtags first, then cscope
 	local ordered_exec_list = {}
@@ -231,14 +232,16 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 
 	for _, exec in ipairs(ordered_exec_list) do
 		if exec == "cscope" then
-			any_exec_supported = true
+			any_valid_exec = true
+			any_op_supported = true
 			local db_conns = db.all_conns()
 			for _, db_con in ipairs(db_conns) do
 				exec_and_update_res(exec, db_con, {})
 			end
 		elseif exec == "gtags-cscope" then
+			any_valid_exec = true
 			if op_s ~= "d" then
-				any_exec_supported = true
+				any_op_supported = true
 				local gtags_conn = db.primary_gtags_conn()
 				if gtags_conn then
 					exec_and_update_res(exec, gtags_conn, { "-a" })
@@ -249,9 +252,26 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 		end
 	end
 
-	if not any_exec_supported then
+	if not any_valid_exec then
+		return RC.INVALID_EXEC, nil
+	end
+
+	if not any_op_supported then
 		log.warn("'" .. op_s .. "' operation is not available for configured executables", hide_log)
 		return RC.INVALID_OP, nil
+	end
+
+	do
+		local seen = {}
+		local deduped = {}
+		for _, entry in ipairs(res) do
+			local key = table.concat({ entry.filename or "", entry.lnum or "" }, "\0")
+			if not seen[key] then
+				seen[key] = true
+				table.insert(deduped, entry)
+			end
+		end
+		res = deduped
 	end
 
 	if vim.tbl_isempty(res) then
@@ -603,11 +623,6 @@ M.setup = function(opts)
 		M.exec_list = { M.opts.exec }
 	else
 		M.exec_list = vim.deepcopy(M.opts.exec)
-	end
-
-	-- For backward compat: single gtags-cscope forces db_file to GTAGS
-	if #M.exec_list == 1 and M.exec_list[1] == "gtags-cscope" then
-		M.opts.db_file = gtags_db
 	end
 
 	-- Add cscope db connections

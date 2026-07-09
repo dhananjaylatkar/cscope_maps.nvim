@@ -1,5 +1,5 @@
 *cscope_maps.txt*
-                            For Neovim >= v0.10.0    Last change: 2026 June 09
+                            For Neovim >= v0.10.0    Last change: 2026 July 09
 
 ==============================================================================
 Table of Contents                              *cscope_maps-table-of-contents*
@@ -42,7 +42,8 @@ CSCOPE ~
 - Short commands are supported. e.g. `:Cs f g <sym>`
 - `:Cstag <sym>` does `tags` search if no results are found in `cscope`.
 - Empty `<sym>` can be used in `:Cs` and `:Cstag` to pick `<cword>` as sym.
-- Supports `cscope` and `gtags-cscope`. Use `cscope.exec` option to specify executable.
+- Supports `cscope`, `gtags-cscope` or `auto`.
+    - `auto` option choose between `cscope` and `gtags-cscope` based on DB type. If no DB is found, `cscope` is used.
 - Keymaps can be disabled using `disable_maps` option.
 - `:CsPrompt <op>` can be used to invoke cscope prompt.
 - Display results in quickfix list, location list, **telescope**, **fzf-lua**, **mini.pick** or **snacks.nvim**.
@@ -137,7 +138,7 @@ _cscope_maps_ comes with following defaults:
                                   --   first DB is "primary" and others are "secondary"
                                   --   primary DB is used for build and project_rooter
         -- cscope executable
-        exec = "cscope", -- "cscope" or "gtags-cscope"
+        exec = "cscope", -- "cscope", "gtags-cscope" or "auto"
         -- choose your fav picker
         picker = "quickfix", -- "quickfix", "location", "telescope", "fzf-lua", "mini-pick" or "snacks"
         -- qf_window_size = 5, -- deprecated, replaced by picket_opts below, but still supported for backward compatibility

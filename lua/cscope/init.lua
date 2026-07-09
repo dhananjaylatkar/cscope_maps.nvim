@@ -551,18 +551,6 @@ M.reload = function()
 	M.setup(M.user_opts)
 end
 
-M.root = function(source, marker)
-	if vim.fn.filereadable(vim.fs.joinpath(source, marker)) == 1 then
-		return source
-	end
-
-	for dir in vim.fs.parents(source) do
-		if vim.fn.filereadable(vim.fs.joinpath(dir, marker)) == 1 then
-			return dir
-		end
-	end
-	return nil
-end
 
 ---Initialization api
 ---@param opts CsConfig
@@ -602,7 +590,7 @@ M.setup = function(opts)
 	-- 2. if change_cwd is enabled, change into it (?)
 	if M.opts.project_rooter.enable then
 		local primary_conn = db.primary_conn()
-		local root = M.root(vim.fn.getcwd(), primary_conn.file)
+		local root = vim.fs.root(vim.fn.getcwd(), primary_conn.file)
 		if root then
 			db.update_primary_conn(vim.fs.joinpath(root, primary_conn.file), root)
 

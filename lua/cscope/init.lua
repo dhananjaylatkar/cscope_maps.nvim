@@ -66,7 +66,6 @@ for k, v in pairs(M.op_s_n) do
 end
 
 local cscope_picker = nil
-local gtags_db = "GTAGS"
 
 M.help = function()
 	print([[
@@ -193,13 +192,14 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 
 	local db_conns = db.all_conns()
 	local res = {}
+	local exec = M.get_exec()
 
 	local exec_and_update_res = function(_db_con, _cmd_args)
 		if vim.loop.fs_stat(_db_con.file) == nil then
 			return
 		end
 		local cmd = {
-			M.opts.exec,
+			exec,
 			"-dL",
 			"-" .. op_n,
 			symbol,
@@ -217,18 +217,18 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 		res = vim.list_extend(res, M.parse_output(proc.stdout, _db_con.pre_path))
 	end
 
-	if M.opts.exec == "cscope" then
+	if exec == "cscope" then
 		for _, db_con in ipairs(db_conns) do
 			exec_and_update_res(db_con, {})
 		end
-	elseif M.opts.exec == "gtags-cscope" then
+	elseif exec == "gtags-cscope" then
 		if op_s == "d" then
-			log.warn("'d' operation is not available for " .. M.opts.exec, hide_log)
+			log.warn("'d' operation is not available for " .. exec, hide_log)
 			return RC.INVALID_OP, nil
 		end
 		exec_and_update_res(db.primary_conn(), { "-a" })
 	else
-		log.warn("'" .. M.opts.exec .. "' executable is not supported", hide_log)
+		log.warn("'" .. exec .. "' executable is not supported", hide_log)
 		return RC.INVALID_EXEC, nil
 	end
 
@@ -551,6 +551,13 @@ M.reload = function()
 	M.setup(M.user_opts)
 end
 
+M.get_exec = function()
+	if db.is_gtags(M.opts) then
+		return "gtags-cscope"
+	end
+
+	return M.opts.exec
+end
 
 ---Initialization api
 ---@param opts CsConfig
@@ -558,15 +565,12 @@ M.setup = function(opts)
 	-- save original opts for reload operation
 	M.user_opts = vim.deepcopy(opts)
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts)
+
 	-- This variable can be used by other plugins to change db_file
 	-- e.g. vim-gutentags can use it for when
 	--	vim.g.gutentags_cache_dir is enabled.
 	vim.g.cscope_maps_db_file = nil
 	vim.g.cscope_maps_statusline_indicator = nil
-
-	if M.opts.exec == "gtags-cscope" then
-		M.opts.db_file = gtags_db
-	end
 
 	db.init(M.opts)
 

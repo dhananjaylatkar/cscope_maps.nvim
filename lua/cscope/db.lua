@@ -9,6 +9,8 @@ M.global_conn = nil
 
 M.sep = "::"
 
+M.gtags_db = "GTAGS"
+
 M.reset = function()
 	M.conns = {}
 	M.global_conn = nil
@@ -199,9 +201,32 @@ M.build = function(opts)
 	vim.system(cmd, { cwd = wd, text = true }, on_exit)
 end
 
+M.is_gtags = function(opts)
+	if opts.exec == M.gtags_db then
+		return true
+	end
+
+	if opts.exec ~= "auto" then
+		return false
+	end
+
+	if opts.project_rooter.enable then
+		if vim.fs.root(vim.fn.getcwd(), M.gtags_db) ~= nil then
+			return true
+		end
+	end
+
+	return vim.uv.fs_stat(M.gtags_db)
+end
+
 ---Parse db_file and call db.add()
 ---@param opts table
 M.init = function(opts)
+	if M.is_gtags(opts) then
+		M.add(M.gtags_db)
+		return
+	end
+
 	if type(opts.db_file) == "string" then
 		M.add(opts.db_file)
 		return

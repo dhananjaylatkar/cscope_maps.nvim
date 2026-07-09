@@ -556,6 +556,10 @@ M.get_exec = function()
 		return "gtags-cscope"
 	end
 
+	if M.opts.exec == "auto" then
+		return "cscope"
+	end
+
 	return M.opts.exec
 end
 

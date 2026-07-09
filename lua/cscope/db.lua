@@ -157,9 +157,9 @@ M.get_build_cmd = function(opts)
 	local cmd = {}
 
 	if opts.db_build_cmd.script == "default" then
-		if opts.exec == "cscope" then
+		if not M.is_gtags(opts) then
 			cmd = { "cscope", "-f", M.primary_conn().file }
-		else -- "gtags-cscope"
+		else
 			cmd = { "gtags-cscope" }
 		end
 
@@ -202,7 +202,7 @@ M.build = function(opts)
 end
 
 M.is_gtags = function(opts)
-	if opts.exec == M.gtags_db then
+	if opts.exec == "gtags-cscope" then
 		return true
 	end
 

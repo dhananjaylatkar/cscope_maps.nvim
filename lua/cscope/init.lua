@@ -20,6 +20,7 @@ local M = {}
 ---@field picker? string
 ---@field skip_picker_for_single_result? boolean
 ---@field db_build_cmd? table
+---@field query_cmd? table
 ---@field statusline_indicator? string|nil
 ---@field project_rooter? CsProjectRooterConfig
 M.opts = {
@@ -32,6 +33,7 @@ M.opts = {
 	},
 	skip_picker_for_single_result = false,
 	db_build_cmd = { script = "default", args = { "-bqkv" } },
+	query_cmd = { args = {} },
 	statusline_indicator = nil,
 	project_rooter = {
 		enable = false,
@@ -219,14 +221,14 @@ M.get_result = function(op_n, op_s, symbol, hide_log)
 
 	if exec == "cscope" then
 		for _, db_con in ipairs(db_conns) do
-			exec_and_update_res(db_con, {})
+			exec_and_update_res(db_con, M.opts.query_cmd.args)
 		end
 	elseif exec == "gtags-cscope" then
 		if op_s == "d" then
 			log.warn("'d' operation is not available for " .. exec, hide_log)
 			return RC.INVALID_OP, nil
 		end
-		exec_and_update_res(db.primary_conn(), { "-a" })
+		exec_and_update_res(db.primary_conn(), vim.list_extend({ "-a" }, M.opts.query_cmd.args))
 	else
 		log.warn("'" .. exec .. "' executable is not supported", hide_log)
 		return RC.INVALID_EXEC, nil

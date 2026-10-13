@@ -129,6 +129,9 @@ _cscope_maps_ comes with following defaults:
     skip_picker_for_single_result = false, -- "false" or "true"
     -- custom script can be used for db build
     db_build_cmd = { script = "default", args = { "-bqkv" } },
+    -- extra args appended to every query invocation (both "cscope" and "gtags-cscope")
+    -- e.g. args = { "-C" } for case-insensitive search
+    query_cmd = { args = {} },
     -- statusline indicator, default is cscope executable
     statusline_indicator = nil,
     -- try to locate db_file in parent dir(s)
